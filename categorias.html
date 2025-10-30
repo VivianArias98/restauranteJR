@@ -29,6 +29,20 @@
     </div>
   </div>
 
+  <!-- 🔹 Modal de edición -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <h3>Modificar categoría</h3>
+      <input type="hidden" id="editarId">
+      <label>Nuevo nombre</label>
+      <input type="text" id="editarNombre" placeholder="Nuevo nombre de categoría">
+      <div class="button-group">
+        <button type="button" id="guardarCambios" class="btn btn-guardar">Guardar cambios</button>
+        <button type="button" id="cerrarModal" class="btn btn-cancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="categorias.js"></script>
 </body>
 </html>

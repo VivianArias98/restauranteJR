@@ -2,7 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('formCategoria');
   const msg = document.getElementById('msg');
   const lista = document.getElementById('listaCategorias');
-  const inputNombre = document.getElementById('nombreCategoria');
+  const modal = document.getElementById('modalEditar');
+  const editarId = document.getElementById('editarId');
+  const editarNombre = document.getElementById('editarNombre');
 
   // 🔹 Mostrar mensajes
   function mostrarMensaje(text, isError = false) {
@@ -38,11 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
           <tr>
             <td>${cat.idCategoria}</td>
+            <td>${cat.nombre}</td>
             <td>
-              <input type="text" value="${cat.nombre}" id="cat-${cat.idCategoria}" class="input-editable">
-            </td>
-            <td>
-              <button class="btn btn-guardar" onclick="actualizarCategoria(${cat.idCategoria})">Modificar</button>
+              <button class="btn btn-guardar" data-id="${cat.idCategoria}" data-nombre="${cat.nombre}" onclick="abrirModal(this)">Modificar</button>
               <button class="btn btn-cancelar" onclick="eliminarCategoria(${cat.idCategoria})">Eliminar</button>
             </td>
           </tr>
@@ -53,19 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
       lista.innerHTML = html;
     } catch (err) {
       lista.innerHTML = '<p>Error al cargar categorías.</p>';
-      console.error(err);
     }
   }
 
   // 🔹 Guardar nueva categoría
   form.addEventListener('submit', async e => {
     e.preventDefault();
-
     const formData = new FormData(form);
     try {
       const res = await fetch('insertar_categoria.php', { method: 'POST', body: formData });
       const data = await res.json();
-
       if (data.success) {
         mostrarMensaje('✅ ' + data.message);
         form.reset();
@@ -78,9 +75,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 🔹 Función global para actualizar
-  window.actualizarCategoria = async (id) => {
-    const nuevoNombre = document.getElementById(`cat-${id}`).value.trim();
+  // 🔹 Abrir modal para editar
+  window.abrirModal = (btn) => {
+    const id = btn.getAttribute('data-id');
+    const nombre = btn.getAttribute('data-nombre');
+    editarId.value = id;
+    editarNombre.value = nombre;
+    modal.style.display = 'flex';
+  };
+
+  // 🔹 Cerrar modal
+  document.getElementById('cerrarModal').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // 🔹 Guardar cambios
+  document.getElementById('guardarCambios').addEventListener('click', async () => {
+    const id = editarId.value;
+    const nuevoNombre = editarNombre.value.trim();
+
     if (!nuevoNombre) {
       alert('El nombre no puede estar vacío.');
       return;
@@ -93,14 +106,18 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('actualizar_categoria.php', { method: 'POST', body: formData });
       const data = await res.json();
+
       alert(data.message);
-      if (data.success) cargarCategorias();
+      if (data.success) {
+        modal.style.display = 'none';
+        cargarCategorias();
+      }
     } catch {
       alert('Error al actualizar la categoría.');
     }
-  };
+  });
 
-  // 🔹 Función global para eliminar
+  // 🔹 Eliminar categoría
   window.eliminarCategoria = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
 
