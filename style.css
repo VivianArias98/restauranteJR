@@ -1,0 +1,238 @@
+/* Reseteo de los márgenes, rellenos y box-sizing para todos los elementos */
+* {
+    margin: 0; /* Elimina el margen por defecto de todos los elementos */
+    padding: 0; /* Elimina el relleno por defecto de todos los elementos */
+    box-sizing: border-box; /* Establece el modelo de caja para que el padding y el borde se incluyan dentro del ancho y alto del elemento */
+    font-family: 'Montserrat', sans-serif; /* Establece la fuente 'Montserrat' para todo el documento */
+}
+
+/* Estilo general para el body */
+body {
+    background-color: #c9d6ff; /* Establece un color de fondo suave */
+    background: linear-gradient(to right, #e2e2e2, #c9d6ff); /* Crea un fondo con un gradiente lineal de izquierda a derecha */
+    display: flex; /* Usa el modelo flexbox para alinear los elementos dentro del body */
+    align-items: center; /* Alinea los elementos al centro verticalmente */
+    justify-content: center; /* Alinea los elementos al centro horizontalmente */
+    flex-direction: column; /* Organiza los elementos en una columna */
+    height: 100vh; /* Establece la altura del body al 100% de la vista del navegador */
+}
+
+/* Estilos para el contenedor principal */
+.container {
+    background-color: #f0efed; /* Establece el color de fondo blanco para el contenedor */
+    border-radius: 30px; /* Bordes redondeados con un radio de 30px */
+    box-shadow: 0 5px 15px rgba(176, 18, 18, 0.35); /* Añade una sombra sutil al contenedor */
+    position: relative; /* Define la posición relativa para posicionamiento absoluto dentro de este contenedor */
+    overflow: hidden; /* Oculta cualquier contenido que se desborde fuera de este contenedor */
+    width: 768px; /* Establece un ancho fijo para el contenedor */
+    max-width: 100%; /* Asegura que el contenedor no exceda el 100% del ancho de su contenedor principal */
+    min-height: 480px; /* Establece una altura mínima de 480px */
+}
+
+/* Estilos para los párrafos dentro del contenedor */
+.container p {
+    font-size: 14px; /* Establece el tamaño de la fuente a 14px */
+    line-height: 20px; /* Define la altura de la línea a 20px para mejorar la legibilidad */
+    letter-spacing: 0.3px; /* Añade un poco de espacio entre las letras */
+    margin: 20px 0; /* Añade un margen de 20px arriba y abajo */
+}
+
+/* Estilos para los elementos span dentro del contenedor */
+.container span {
+    font-size: 12px; /* Establece el tamaño de la fuente a 12px */
+}
+
+/* Estilos para los enlaces dentro del contenedor */
+.container a {
+    color: #fffefe; /* Establece el color de los enlaces a un gris oscuro */
+    font-size: 13px; /* Establece el tamaño de la fuente a 13px */
+    text-decoration: none; /* Elimina el subrayado de los enlaces */
+    margin: 15px 0 10px; /* Añade un margen en la parte superior de 15px y 10px en la parte inferior */
+}
+
+/* Estilos para los botones dentro del contenedor */
+.container button {
+    background-color: #b7200d; /* Establece un fondo oscuro para los botones */
+    color: #0c0909; /* Establece el color del texto a blanco */
+    font-size: 12px; /* Establece el tamaño de la fuente a 12px */
+    padding: 10px 45px; /* Añade relleno de 10px arriba y abajo, 45px a los lados */
+    border: 1px solid transparent; /* Define un borde transparente */
+    border-radius: 8px; /* Bordes redondeados para el botón */
+    font-weight: 600; /* Establece el peso de la fuente a 600 (negrita) */
+    letter-spacing: 0.5px; /* Añade un poco de espacio entre las letras */
+    text-transform: uppercase; /* Convierte el texto a mayúsculas */
+    margin-top: 10px; /* Añade un margen superior de 10px */
+    cursor: pointer; /* Cambia el cursor a un puntero al pasar sobre el botón */
+}
+
+/* Estilos para el botón con la clase 'hidden' */
+.container button.hidden {
+    background-color: transparent; /* Fondo transparente */
+    border-color: #141313; /* Bordes blancos */
+}
+
+/* Estilos para el formulario dentro del contenedor */
+.container form {
+    background-color: #e6d8d5; /* Fondo blanco */
+    display: flex; /* Utiliza el modelo flexbox para alinear los elementos dentro del formulario */
+    align-items: center; /* Centra los elementos verticalmente */
+    justify-content: center; /* Centra los elementos horizontalmente */
+    flex-direction: column; /* Organiza los elementos en una columna */
+    padding: 0 40px; /* Añade 40px de relleno en los lados del formulario */
+    height: 100%; /* Establece que el formulario debe ocupar el 100% de la altura disponible */
+}
+
+/* Estilos para los campos de entrada dentro del contenedor */
+.container input {
+    background-color: #eee; /* Fondo gris claro para los campos de entrada */
+    border: none; /* Elimina el borde por defecto */
+    margin: 8px 0; /* Añade un margen de 8px arriba y abajo */
+    padding: 10px 15px; /* Añade 10px de relleno arriba y abajo, 15px a los lados */
+    font-size: 13px; /* Establece el tamaño de la fuente a 13px */
+    border-radius: 8px; /* Bordes redondeados */
+    width: 100%; /* Establece el ancho al 100% */
+    outline: none; /* Elimina el contorno al hacer foco en el campo */
+}
+
+/* Contenedor que alberga los formularios de inicio de sesión y registro */
+.form-container {
+    position: absolute; /* Posiciona absolutamente el formulario */
+    top: 0; /* Coloca el formulario en la parte superior del contenedor */
+    height: 100%; /* Establece que el formulario ocupe toda la altura del contenedor */
+    transition: all 0.6s ease-in-out; /* Añade una transición suave para los cambios de estado */
+}
+
+/* Estilos para el formulario de inicio de sesión */
+.sign-in {
+    left: 0; /* Posiciona el formulario de inicio de sesión a la izquierda */
+    width: 50%; /* Establece que ocupe el 50% del contenedor */
+    z-index: 2; /* Establece un valor de z-index para posicionar el formulario encima del formulario de registro */
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el formulario de inicio de sesión se mueve hacia la derecha */
+.container.active .sign-in {
+    transform: translateX(100%); /* Desplaza el formulario de inicio de sesión fuera del contenedor */
+}
+
+/* Estilos para el formulario de registro */
+.sign-up {
+    left: 0; /* Posiciona el formulario de registro a la izquierda */
+    width: 50%; /* Establece que ocupe el 50% del contenedor */
+    opacity: 0; /* Hace el formulario invisible inicialmente */
+    z-index: 1; /* Establece un valor de z-index para que esté detrás del formulario de inicio de sesión */
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el formulario de registro se mueve y se hace visible */
+.container.active .sign-up {
+    transform: translateX(100%); /* Desplaza el formulario de registro fuera del contenedor */
+    opacity: 1; /* Hace visible el formulario de registro */
+    z-index: 5; /* Establece el formulario de registro por encima del formulario de inicio de sesión */
+    animation: move 0.6s; /* Aplica una animación para mover el formulario */
+}
+
+/* Animación para mover el formulario de registro */
+@keyframes move {
+    0%, 49.99% {
+        opacity: 0; /* Hace el formulario invisible al principio de la animación */
+        z-index: 1; /* Coloca el formulario detrás */
+    }
+    50%, 100% {
+        opacity: 1; /* Hace el formulario visible al final de la animación */
+        z-index: 5; /* Coloca el formulario por encima */
+    }
+}
+
+/* Estilos para los íconos sociales */
+.social-icons {
+    margin: 30px 0; /* Añade un margen de 20px arriba y abajo */
+}
+
+/* Estilos para cada ícono social */
+.social-icons a {
+    border: 1px solid #ccc; /* Establece un borde gris claro */
+    border-radius: 20%; /* Bordes redondeados con un radio del 20% */
+    display: inline-flex; /* Utiliza flexbox para alinear los íconos dentro del contenedor */
+    justify-content: center; /* Centra los íconos horizontalmente */
+    align-items: center; /* Centra los íconos verticalmente */
+    margin: 0 3px; /* Añade un margen de 3px entre los íconos */
+    width: 40px; /* Establece un ancho de 40px para cada ícono */
+    height: 40px; /* Establece una altura de 40px para cada ícono */
+    background-color: #d31b14;
+    color: rgb(13, 5, 5);
+}
+
+/* Estilos para el contenedor del toggle (cambio entre formularios) */
+.toggle-container {
+    position: absolute; /* Posiciona el contenedor de forma absoluta */
+    top: 0; /* Coloca el toggle en la parte superior */
+    left: 50%; /* Posiciona el toggle en el centro horizontalmente */
+    width: 50%; /* Establece el ancho del contenedor a 50% */
+    height: 100%; /* Hace que el contenedor ocupe toda la altura */
+    overflow: hidden; /* Oculta cualquier contenido que se desborde */
+    transition: all 0.6s ease-in-out; /* Añade una transición suave para los cambios de estado */
+    border-radius: 150px 0 0 100px; /* Aplica un borde redondeado con valores asimétricos */
+    z-index: 1000; /* Coloca el contenedor por encima de otros elementos */
+    
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el toggle se desplaza hacia la izquierda */
+.container.active .toggle-container {
+    transform: translateX(-100%); /* Desplaza el toggle hacia la izquierda */
+    border-radius: 0 150px 100px 0; /* Cambia la forma de los bordes redondeados */
+}
+
+/* Estilos para el contenedor de toggle */
+.toggle {
+    background-color: #eeede7; 
+    height: 100%; 
+    background: linear-gradient(to right, #6200ff, #7f0083); 
+    color: #0e0b0b; 
+    position: relative; 
+    left: -100%; 
+    width: 200%; 
+    transform: translateX(0); 
+    transition: all 0.6s ease-in-out; 
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el toggle se desplaza hacia la derecha */
+.container.active .toggle {
+    transform: translateX(50%); /* Mueve el toggle hacia la derecha */
+}
+
+/* Estilos para cada panel dentro del toggle */
+.toggle-panel {
+    position: absolute; /* Posiciona absolutamente el panel */
+    width: 50%; /* Establece que el panel ocupe el 50% del contenedor */
+    height: 100%; /* Hace que el panel ocupe toda la altura */
+    display: flex; /* Usa flexbox para alinear el contenido dentro del panel */
+    align-items: center; /* Centra el contenido verticalmente */
+    justify-content: center; /* Centra el contenido horizontalmente */
+    flex-direction: column; /* Organiza el contenido en una columna */
+    padding: 0 30px; /* Añade 30px de relleno a los lados del panel */
+    text-align: center; /* Centra el texto */
+    top: 0; /* Coloca el panel en la parte superior */
+    transform: translateX(0); /* Sin desplazamiento inicial */
+    transition: all 0.6s ease-in-out; /* Añade transición suave para los cambios de estado */
+    background-color: #f7e888; /* Fondo oscuro */
+}
+
+/* Panel izquierdo del toggle */
+.toggle-left {
+    transform: translateX(-200%); /* Inicialmente coloca el panel izquierdo fuera de vista */
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el panel izquierdo se mueve a su posición */
+.container.active .toggle-left {
+    transform: translateX(0); /* Mueve el panel izquierdo a su posición */
+}
+
+/* Panel derecho del toggle */
+.toggle-right {
+    right: 0; /* Coloca el panel derecho a la derecha */
+    transform: translateX(0); /* Inicialmente no hay desplazamiento */
+}
+
+/* Cuando la clase 'active' se aplica al contenedor, el panel derecho se mueve hacia fuera de vista */
+.container.active .toggle-right {
+    transform: translateX(200%); /* Desplaza el panel derecho fuera de vista */
+}

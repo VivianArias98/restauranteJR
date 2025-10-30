@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurante JR - Menú Principal</title>
+
+  <!-- CSS externo -->
+  <link rel="stylesheet" href="home.css">
+
+  <!-- Iconos (Font Awesome) -->
+  <script src="https://kit.fontawesome.com/a2e0e6a4ef.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <header>
+    <h1>Restaurante JR</h1>
+    <div class="user-info">
+      <span>Usuario: Admin</span>
+      <span>28 de septiembre de 2025, 3:09:40</span>
+      <button class="logout-btn">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card" onclick="location.href='registroGastos.html'">
+      <i class="fa-solid fa-money-bill-wave"></i>
+      <h3>Registro de Gastos</h3>
+    </div>
+
+    <div class="card" onclick="location.href='balanceDiario.html'">
+      <i class="fa-solid fa-calculator"></i>
+      <h3>Cálculo del Balance Diario</h3>
+    </div>
+
+    <div class="card" onclick="location.href='reporteCaja.html'">
+      <i class="fa-solid fa-receipt"></i>
+      <h3>Reporte Diario de Caja</h3>
+    </div>
+
+    <div class="card" onclick="location.href='historialGastos.html'">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <h3>Historial de Gastos</h3>
+    </div>
+  </main>
+
+</body>
+</html>
