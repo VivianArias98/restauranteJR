@@ -1,0 +1,239 @@
+/* 🌿 ======= ESTILO GESTIÓN DE CATEGORÍAS ======= */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f7f5;
+  color: #222;
+  padding: 20px;
+}
+
+/* 🧱 CONTENEDOR PRINCIPAL */
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+/* TITULOS */
+h1, h2 {
+  text-align: center;
+  color: #1d1d1d;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+/* FORMULARIO */
+.form-card {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: 0.2s ease;
+}
+
+input[type="text"]:focus {
+  border-color: #006400;
+  box-shadow: 0 0 4px rgba(0,100,0,0.3);
+  outline: none;
+}
+
+/* BOTONES */
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.15);
+}
+
+.btn:hover { transform: scale(1.03); }
+
+.btn-guardar {
+  background-color: #f2b600;
+  color: #000;
+}
+.btn-guardar:hover { background-color: #dba100; }
+
+.btn-cancelar {
+  background-color: #e0e0e0;
+  color: #333;
+}
+.btn-cancelar:hover { background-color: #cfcfcf; }
+
+/* 🧾 LISTA DE CATEGORÍAS */
+.lista-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  overflow-x: auto;
+}
+
+/* TABLA */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  min-width: 600px;
+}
+
+thead th {
+  background-color: #fff;
+  color: #000;
+  font-weight: 700;
+  text-transform: none;
+  font-size: 15px;
+  padding: 10px 12px;
+  border-bottom: 2px solid #eee;
+  text-align: left;
+}
+
+tbody tr {
+  background-color: #fafafa;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: #f1f8f1;
+}
+
+/* CELDAS */
+td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+td:first-child {
+  text-align: center;
+  font-weight: 600;
+  width: 60px;
+}
+
+td:nth-child(2) {
+  width: 60%;
+}
+
+.input-editable {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.08);
+}
+
+.input-editable:focus {
+  border-color: #006400;
+  box-shadow: 0 0 3px rgba(0,100,0,0.3);
+  outline: none;
+}
+
+/* ACCIONES */
+td:last-child {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+td .btn {
+  padding: 8px 14px;
+  font-size: 13.5px;
+  min-width: 95px;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 700px) {
+  .container {
+    padding: 20px;
+  }
+
+  table {
+    font-size: 13px;
+    min-width: 100%;
+  }
+
+  .button-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 550px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead { display: none; }
+
+  tbody tr {
+    margin-bottom: 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    padding: 10px;
+  }
+
+  td {
+    border: none;
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #333;
+  }
+
+  td:last-child {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  td .btn {
+    flex: 1 1 48%;
+    font-size: 13px;
+  }
+}

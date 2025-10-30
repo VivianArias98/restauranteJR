@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Categorías</title>
+  <link rel="stylesheet" href="categorias.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Categorías</h1>
+
+    <!-- 🔹 Formulario de registro -->
+    <form id="formCategoria" class="form-card">
+      <label>Nombre de la categoría</label>
+      <input type="text" id="nombreCategoria" name="nombre" placeholder="Ej: Lácteos" required>
+
+      <div class="button-group">
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <button type="reset" class="btn btn-cancelar">Cancelar</button>
+      </div>
+
+      <p id="msg"></p>
+    </form>
+
+    <!-- 🔹 Tabla de categorías -->
+    <div class="lista-container">
+      <h2>Categorías registradas</h2>
+      <div id="listaCategorias"></div>
+    </div>
+  </div>
+
+  <script src="categorias.js"></script>
+</body>
+</html>
