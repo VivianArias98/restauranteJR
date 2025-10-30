@@ -2,26 +2,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Metaetiqueta que define la codificación de caracteres para el documento -->
+   
     <meta charset="UTF-8">
-    <!-- Metaetiqueta que hace que el sitio sea responsive, adaptándose a diferentes tamaños de pantalla -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Enlace al archivo de CSS de Font Awesome para usar los íconos sociales -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
-    <!-- Enlace al archivo de CSS externo llamado style.css donde se definen los estilos personalizados -->
     <link rel="stylesheet" href="style.css">
-    <!-- Título de la página que aparecerá en la pestaña del navegador -->
     <title>CSSyHTMLLoguin</title>
 </head>
 <body>
 
-    <!-- Contenedor principal que envuelve todo el contenido de la página -->
     <div class="container" id="container">
 
-        <!-- Formulario de Registro -->
         <div class="form-container sign-up">
             <form>
-                <!-- Título del formulario de registro -->
                 <h1>Crear cuenta </h1>
                 
                 <!-- Sección de íconos sociales -->
@@ -33,71 +26,48 @@
                     <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
                 </div>
                 
-                <!-- Texto que indica que el usuario también puede registrarse con su correo -->
                 <span>o usa tu correo para registrarse</span>
                 
-                <!-- Campos de entrada para el nombre, correo electrónico y contraseña -->
                 <input type="text" id="registerName" placeholder="Nombre">
                 <input type="email" id="registerEmail" placeholder="ejemplo@email.com">
                 <input type="password" id="registerPassword" placeholder="Password">
                 
-                <!-- Botón para enviar el formulario de registro -->
                 <button id="registerButton">Registrarse</button>
             </form>
         </div>
-
-        <!-- Formulario de Ingreso -->
         <div class="form-container sign-in">
             <form>
-                <!-- Título del formulario de inicio de sesión -->
                 <h1>iniciar sección</h1>
-                
-                <!-- Sección de íconos sociales para inicio de sesión -->
                 <div class="social-icons">
-                    <!-- Íconos de redes sociales para iniciar sesión con cuentas externas -->
                     <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
                     <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
                     <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
                     <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
                 </div>
-                
-                <!-- Texto que indica que también se puede usar un correo y contraseña -->
                 <span>o usa tu correo y contraseña</span>
-                
-                <!-- Campos de entrada para el correo electrónico y la contraseña -->
                 <input type="email" id="loginEmail" placeholder="Ejemplo@email.com">
                 <input type="password" id="loginPassword" placeholder="Password">
                 
-                <!-- Enlace para recuperar la contraseña en caso de olvido -->
-              <!--  <a href="forgot.html" id="forgotPassword">Olvidaste tu contraseña?</a>-->
-                
-                <!-- Botón para enviar el formulario de inicio de sesión -->
                 <button id="loginButton">Iniciar Sesión</button>
             </form>
         </div>
 
         <!-- Contenedor del Toggle -->
         <div class="toggle-container">
-            <!-- Contenedor del Toggle que permite alternar entre el panel de inicio de sesión y el de registro -->
             <div class="toggle">
                 
                 <!-- Panel izquierdo (para inicio de sesión) -->
                 <div class="toggle-panel toggle-left">
-                    <!-- Título de bienvenida para el inicio de sesión -->
+                   
                     <h1>Bienvenido</h1>
-                    <!-- Descripción que invita a ingresar los detalles personales para usar el sitio -->
                     <p>Ingresa los datos necesarios para iniciar sección</p>
-                    <!-- Botón oculto para acceder al formulario de inicio de sesión -->
                     <button class="hidden" id="login">Iniciar Sección</button>
                 </div>
 
                 <!-- Panel derecho (para registro) -->
                 <div class="toggle-panel toggle-right">
-                    <!-- Título de bienvenida para el registro -->
                     <h1>Hola!</h1>
-                    <!-- Descripción que invita a registrarse con los detalles personales -->
                     <p>Registra tu cuenta usando la informacion personal</p>
-                    <!-- Botón oculto para acceder al formulario de registro -->
                     <button class="hidden" id="register">registrarse</button>
                 </div>
             </div>
@@ -119,12 +89,10 @@
     appId: "1:530555939133:web:7dad4891ef779be71d7d54"
   };
 
-   
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore(); 
     </script>
 
-    <!-- Tus scripts -->
     <script src="scripts/toggle.js"></script>
     <script src="scripts/autenticacion.js"></script>
 
