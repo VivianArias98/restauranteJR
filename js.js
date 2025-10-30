@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const msg = document.getElementById('msg');
   const lista = document.getElementById('listaGastos');
 
+  // 🔙 Volver 
+  const btnVolver = document.getElementById('btnVolver'); // ✅ esta línea es indispensable
+  if (btnVolver) {
+    btnVolver.addEventListener('click', (e) => {
+      e.preventDefault(); // Evita comportamientos de formulario
+      console.log("Click en volver"); // Verifica en consola
+      window.location.href = 'home.html'; // Cambia ruta si home.html está en otra carpeta
+    });
+  }
+
   // 🔹 Mostrar mensajes de éxito o error
   function mostrarMensaje(text, isError = false) {
     msg.textContent = text;

@@ -9,6 +9,7 @@
   <div class="container">
     <h1>Gestión de Categorías</h1>
 
+
     <!-- 🔹 Formulario de registro -->
     <form id="formCategoria" class="form-card">
       <label>Nombre de la categoría</label>
@@ -41,8 +42,29 @@
         <button type="button" id="cerrarModal" class="btn btn-cancelar">Cancelar</button>
       </div>
     </div>
+    
   </div>
+  <!-- 🔙 Botón Volver -->
+    <div class="button-group" style="margin-bottom: 20px;">
+      <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver </button>
+    </div>
 
   <script src="categorias.js"></script>
+  
+
+  <!-- 🔹 Script del botón Volver -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnVolver = document.getElementById('btnVolver');
+      if (btnVolver) {
+        btnVolver.addEventListener('click', (e) => {
+          e.preventDefault();
+          // Si home.html está en la misma carpeta:
+          window.location.href = 'home.html';
+          // Si está en otra carpeta, ajusta con: ../home.html
+        });
+      }
+    });
+  </script>
 </body>
 </html>
