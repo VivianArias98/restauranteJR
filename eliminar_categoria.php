@@ -2,19 +2,20 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once 'conexion.php';
 
-$id = intval($_POST['idCategoria'] ?? 0);
+// Activar errores de MySQLi para ver causas exactas
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-if ($id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'ID inválido.']);
-    exit;
-}
+try {
+    $id = intval($_POST['idCategoria'] ?? 0);
 
-// 🔹 Verificar si está asociada a otros registros
-// Cambia "gasto" por el nombre real de tu tabla relacionada (si existe)
-$checkSql = "SELECT COUNT(*) FROM gasto WHERE idCategoria = ?";
-$checkStmt = $conn->prepare($checkSql);
+    if ($id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'ID inválido.']);
+        exit;
+    }
 
-if ($checkStmt) {
+    // 🔹 Verificar si la categoría está asociada a algún insumo
+    $checkSql = "SELECT COUNT(*) FROM insumo WHERE idCategoria = ?";
+    $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param("i", $id);
     $checkStmt->execute();
     $checkStmt->bind_result($count);
@@ -24,35 +25,35 @@ if ($checkStmt) {
     if ($count > 0) {
         echo json_encode([
             'success' => false,
-            'message' => '⚠️ No se puede eliminar esta categoría porque está asociada a otros registros (por ejemplo, gastos).'
+            'message' => '⚠️ No se puede eliminar esta categoría porque está asociada a uno o más insumos.'
         ]);
         $conn->close();
         exit;
     }
-}
 
-// 🔹 Si no está asociada, eliminar
-$sql = "DELETE FROM categoria WHERE idCategoria = ?";
-$stmt = $conn->prepare($sql);
+    // 🔹 Si no hay insumos asociados, eliminar la categoría
+    $stmt = $conn->prepare("DELETE FROM categoria WHERE idCategoria = ?");
+    $stmt->bind_param("i", $id);
+    $ok = $stmt->execute();
 
-if (!$stmt) {
-    echo json_encode(['success' => false, 'message' => 'Error en la preparación de la consulta: ' . $conn->error]);
-    exit;
-}
-
-$stmt->bind_param("i", $id);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => '🗑️ Categoría eliminada correctamente.']);
-} else {
-    // Si MySQL devuelve error de integridad (clave foránea)
-    if ($conn->errno == 1451) {
-        echo json_encode(['success' => false, 'message' => '⚠️ No se puede eliminar esta categoría porque está relacionada con otros registros.']);
+    if ($ok) {
+        echo json_encode(['success' => true, 'message' => '🗑️ Categoría eliminada correctamente.']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error al eliminar: ' . $stmt->error]);
+        echo json_encode(['success' => false, 'message' => '⚠️ No se pudo eliminar la categoría.']);
+    }
+
+    $stmt->close();
+    $conn->close();
+
+} catch (mysqli_sql_exception $e) {
+    if ($e->getCode() == 1451) {
+        // Error de integridad referencial
+        echo json_encode([
+            'success' => false,
+            'message' => '⚠️ No se puede eliminar esta categoría porque está relacionada con otros registros (por ejemplo, insumos).'
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error SQL: ' . $e->getMessage()]);
     }
 }
-
-$stmt->close();
-$conn->close();
 ?>
