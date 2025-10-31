@@ -16,7 +16,19 @@ try {
     throw new Exception("Datos incompletos para registrar el gasto.");
   }
 
-  // 🔹 1️⃣ Insertar gasto principal (ahora con observaciones)
+  // 🔹 1️⃣ Verificar saldo de la caja
+  $stmtSaldo = $conn->prepare("SELECT saldo FROM caja WHERE idCaja = ?");
+  $stmtSaldo->bind_param("i", $idCaja);
+  $stmtSaldo->execute();
+  $resultadoSaldo = $stmtSaldo->get_result();
+  $saldoCaja = $resultadoSaldo->fetch_assoc()['saldo'] ?? 0;
+  $stmtSaldo->close();
+
+  if ($monto > $saldoCaja) {
+    throw new Exception("El monto del gasto ($monto) supera el saldo disponible en la caja ($saldoCaja). No se puede registrar.");
+  }
+
+  // 🔹 2️⃣ Insertar gasto principal
   $stmt = $conn->prepare("
     INSERT INTO registrogasto (concepto, montoTotal, observaciones, fecha, idMedioPago, idCaja)
     VALUES (?, ?, ?, CURDATE(), ?, ?)
@@ -29,7 +41,7 @@ try {
   $ultimoIdInsumo = null;
   $ultimoIdCategoria = null;
 
-  // 🔹 2️⃣ Procesar insumos
+  // 🔹 3️⃣ Procesar insumos
   foreach ($insumos as $insumo) {
     $nombre = trim($insumo['nombre'] ?? '');
     $categoria = trim($insumo['categoria'] ?? '');
@@ -70,7 +82,6 @@ try {
     }
     $stmt->close();
 
-    // Guardamos el último insumo y categoría (para asociarlos al gasto)
     $ultimoIdInsumo = $idInsumo;
     $ultimoIdCategoria = $idCat;
 
@@ -84,7 +95,7 @@ try {
     $stmt3->close();
   }
 
-  // 🔹 3️⃣ Actualizar registrogasto con último insumo y categoría
+  // 🔹 4️⃣ Actualizar registrogasto con último insumo y categoría
   if ($ultimoIdInsumo && $ultimoIdCategoria) {
     $stmt = $conn->prepare("UPDATE registrogasto SET idInsumo = ?, idCategoria = ? WHERE idRegistroGasto = ?");
     $stmt->bind_param("iii", $ultimoIdInsumo, $ultimoIdCategoria, $idGasto);
@@ -92,14 +103,14 @@ try {
     $stmt->close();
   }
 
-  // 🔹 4️⃣ Actualizar saldo de caja
+  // 🔹 5️⃣ Actualizar saldo de caja (solo si hay saldo suficiente)
   $stmt4 = $conn->prepare("UPDATE caja SET saldo = saldo - ? WHERE idCaja = ?");
   $stmt4->bind_param("di", $monto, $idCaja);
   $stmt4->execute();
   $stmt4->close();
 
   $conn->commit();
-  echo json_encode(["success" => true, "message" => "✅ Gasto registrado correctamente con observaciones e insumos"]);
+  echo json_encode(["success" => true, "message" => "✅ Gasto registrado correctamente."]);
 
 } catch (Exception $e) {
   $conn->rollback();
