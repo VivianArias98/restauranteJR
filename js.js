@@ -14,29 +14,54 @@ document.addEventListener("DOMContentLoaded", () => {
 let insumosGasto = [];
 let listaInsumos = [];
 
-// 🔹 Cargar cajas
+// 🔹 Cargar cajas y mostrar saldo dinámico con aviso al usuario
 function cargarCajas() {
   fetch("listar_caja.php")
     .then(r => r.json())
     .then(data => {
       const selectCaja = document.getElementById("caja");
       const saldoCaja = document.getElementById("saldoCaja");
+
+      // Limpiar select
       selectCaja.innerHTML = "";
 
+      // Si no hay cajas registradas
+      if (!data || data.length === 0) {
+        saldoCaja.textContent = "⚠️ No hay cajas registradas.";
+        return;
+      }
+
+      // Llenar el select y guardar saldo en cada opción
       data.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.idCaja;
-        opt.textContent = c.nombre;
+        opt.textContent = `${c.nombre}`;
+        opt.dataset.saldo = c.saldo;
         selectCaja.appendChild(opt);
       });
 
-      if (data.length > 0) {
-        const caja = data[0];
-        selectCaja.value = caja.idCaja;
-        saldoCaja.textContent = `Saldo actual: $${parseFloat(caja.saldo).toFixed(2)}`;
-      }
+      // Mostrar saldo de la primera caja
+      const primeraCaja = data[0];
+      saldoCaja.textContent = `Saldo actual: $${parseFloat(primeraCaja.saldo).toLocaleString("es-CO")}`;
+
+      // 🔸 Escuchar cambio de caja
+      selectCaja.addEventListener("change", () => {
+        const selectedOption = selectCaja.options[selectCaja.selectedIndex];
+        const nombreCaja = selectedOption.textContent;
+        const saldo = parseFloat(selectedOption.dataset.saldo);
+
+        saldoCaja.textContent = `Saldo actual: $${saldo.toLocaleString("es-CO")}`;
+
+        // 🔹 Mostrar mensaje al usuario
+        alert(`💰 Cambiaste a la caja "${nombreCaja}".\nSaldo disponible: $${saldo.toLocaleString("es-CO")}`);
+      });
+    })
+    .catch(err => {
+      console.error("Error al cargar cajas:", err);
+      document.getElementById("saldoCaja").textContent = "❌ Error al cargar cajas.";
     });
 }
+
 
 // 🔹 Cargar categorías
 function cargarCategorias() {
