@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Caja</title>
+  <link rel="stylesheet" href="css.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Caja</h1>
+
+    <div id="infoCaja"></div>
+
+    <form id="formIngreso">
+      <label>Monto de ingreso</label>
+      <input type="number" id="montoIngreso" step="0.01" placeholder="$ 0.00" required>
+
+      <div class="button-group">
+        <button type="submit" class="btn btn-guardar">Registrar ingreso</button>
+        <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    cargarCaja();
+    document.getElementById("formIngreso").addEventListener("submit", registrarIngreso);
+    document.getElementById("btnVolver").addEventListener("click", () => window.location.href = "html.html");
+  });
+
+  function cargarCaja() {
+    fetch("obtener_cajas.php")
+      .then(res => res.json())
+      .then(data => {
+        const activa = data.find(c => c.estado === "activa");
+        document.getElementById("infoCaja").innerHTML = `
+          <h3>${activa.nombre}</h3>
+          <p><strong>Saldo actual:</strong> $${activa.saldo}</p>
+        `;
+      });
+  }
+
+  function registrarIngreso(e) {
+    e.preventDefault();
+    const monto = document.getElementById("montoIngreso").value;
+
+    fetch("registrar_ingreso.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "monto=" + monto
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      cargarCaja();
+      document.getElementById("formIngreso").reset();
+    });
+  }
+  </script>
+</body>
+</html>

@@ -8,8 +8,8 @@
 
 /* Estilo general para el body */
 body {
-    background-color: #c9d6ff; /* Establece un color de fondo suave */
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff); /* Crea un fondo con un gradiente lineal de izquierda a derecha */
+    background-color: #e7e8eb; /* Establece un color de fondo suave */
+    background: linear-gradient(to right, #e2e2e2, #dee3f3); /* Crea un fondo con un gradiente lineal de izquierda a derecha */
     display: flex; /* Usa el modelo flexbox para alinear los elementos dentro del body */
     align-items: center; /* Alinea los elementos al centro verticalmente */
     justify-content: center; /* Alinea los elementos al centro horizontalmente */
@@ -185,7 +185,7 @@ body {
 .toggle {
     background-color: #eeede7; 
     height: 100%; 
-    background: linear-gradient(to right, #6200ff, #7f0083); 
+    background: linear-gradient(to right, #dfd7ec, #e7d9e7); 
     color: #0e0b0b; 
     position: relative; 
     left: -100%; 

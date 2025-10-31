@@ -1,195 +1,194 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('formGasto');
-  const msg = document.getElementById('msg');
-  const lista = document.getElementById('listaGastos');
+document.addEventListener("DOMContentLoaded", () => {
+  cargarCajas();
+  cargarCategorias();
+  cargarGastos();
 
-  // 🔙 Volver 
-  const btnVolver = document.getElementById('btnVolver'); // ✅ esta línea es indispensable
-  if (btnVolver) {
-    btnVolver.addEventListener('click', (e) => {
-      e.preventDefault(); // Evita comportamientos de formulario
-      console.log("Click en volver"); // Verifica en consola
-      window.location.href = 'home.html'; // Cambia ruta si home.html está en otra carpeta
+  document.getElementById("btnGuardar").addEventListener("click", guardarGasto);
+  document.getElementById("btnNuevaCategoria").addEventListener("click", mostrarNuevaCategoria);
+  document.getElementById("cancelarCategoria").addEventListener("click", ocultarNuevaCategoria);
+  document.getElementById("guardarCategoria").addEventListener("click", guardarCategoria);
+  document.getElementById("btnVolver").addEventListener("click", () => window.location.href = "home.html");
+});
+
+let insumosGasto = [];
+
+// 🔹 Cargar cajas y mostrar saldo
+function cargarCajas() {
+  fetch("listar_caja.php")
+    .then(r => r.json())
+    .then(data => {
+      const selectCaja = document.getElementById("caja");
+      const saldoCaja = document.getElementById("saldoCaja");
+      selectCaja.innerHTML = "";
+
+      data.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.idCaja;
+        opt.textContent = c.nombre;
+        selectCaja.appendChild(opt);
+      });
+
+      selectCaja.addEventListener("change", () => {
+        const caja = data.find(x => x.idCaja == selectCaja.value);
+        saldoCaja.textContent = `Saldo actual: $${parseFloat(caja.saldo).toFixed(2)}`;
+      });
+
+      // Mostrar saldo inicial
+      if (data.length > 0) {
+        const caja = data[0];
+        selectCaja.value = caja.idCaja;
+        saldoCaja.textContent = `Saldo actual: $${parseFloat(caja.saldo).toFixed(2)}`;
+      }
     });
-  }
+}
 
-  // 🔹 Mostrar mensajes de éxito o error
-  function mostrarMensaje(text, isError = false) {
-    msg.textContent = text;
-    msg.style.color = isError ? '#b00020' : '#006400';
-    setTimeout(() => { msg.textContent = ''; }, 4000);
-  }
-
-  // 🔹 Evitar inyección de HTML
-  function escapeHtml(str) {
-    return str.replace(/[&<>'"]/g, function(tag) {
-      const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
-      return chars[tag] || tag;
-    });
-  }
-
-  // 🔹 Formato de miles (pesos colombianos)
-  function formatoMiles(num) {
-    return num.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  // 🔹 Cargar las categorías dinámicamente
-  async function cargarCategorias() {
-    try {
-      const res = await fetch('listar_categoria.php');
-      const data = await res.json();
-
-      const select = document.getElementById('categoria');
-      select.innerHTML = '<option value="">Seleccione una categoría...</option>';
-
-      if (data.success && data.data.length > 0) {
-        data.data.forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat.idCategoria;
-          opt.textContent = cat.nombre;
-          select.appendChild(opt);
-        });
-      } else {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No hay categorías registradas';
+// 🔹 Cargar categorías
+function cargarCategorias() {
+  fetch("listar_categoria.php")
+    .then(r => r.json())
+    .then(data => {
+      const select = document.getElementById("categoria");
+      select.innerHTML = `<option value="">Seleccione una categoría...</option>`;
+      data.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.nombre;
+        opt.textContent = c.nombre;
         select.appendChild(opt);
-      }
-    } catch (err) {
-      console.error('Error cargando categorías:', err);
-    }
-  }
+      });
+    });
+}
 
-  // 🔹 Cargar los registros de gastos
-  async function cargarRegistros() {
-    try {
-      const res = await fetch('listar_gastos.php?limit=100');
-      const data = await res.json();
+// 🔹 Mostrar formulario para nueva categoría
+function mostrarNuevaCategoria() {
+  document.getElementById("nuevaCategoriaBox").style.display = "block";
+}
 
-      if (!data.success) {
-        lista.innerHTML = '<p>Error al cargar registros</p>';
+// 🔹 Ocultar formulario de nueva categoría
+function ocultarNuevaCategoria() {
+  document.getElementById("nuevaCategoriaBox").style.display = "none";
+}
+
+// 🔹 Guardar nueva categoría
+function guardarCategoria() {
+  const nombre = document.getElementById("nombreCategoria").value.trim();
+  if (!nombre) return alert("Escribe un nombre para la categoría.");
+
+  fetch("insertar_categoria.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "nombre=" + encodeURIComponent(nombre)
+  })
+  .then(r => r.text())
+  .then(msg => {
+    alert(msg);
+    cargarCategorias();
+    ocultarNuevaCategoria();
+  });
+}
+
+// 🔹 Añadir varios insumos
+const btnAgregarInsumo = document.createElement("button");
+btnAgregarInsumo.textContent = "➕ Agregar insumo";
+btnAgregarInsumo.className = "btn btn-secundario";
+document.querySelector(".insumo-section").appendChild(btnAgregarInsumo);
+
+const listaInsumos = document.createElement("div");
+listaInsumos.id = "listaInsumos";
+document.querySelector(".insumo-section").appendChild(listaInsumos);
+
+btnAgregarInsumo.addEventListener("click", () => {
+  const nombre = document.getElementById("insumo").value.trim();
+  const categoria = document.getElementById("categoria").value;
+  if (!nombre || !categoria) return alert("Completa el nombre del insumo y selecciona una categoría.");
+
+  insumosGasto.push({ nombre, categoria });
+  const item = document.createElement("p");
+  item.textContent = `🟡 ${nombre} (${categoria})`;
+  listaInsumos.appendChild(item);
+
+  document.getElementById("insumo").value = "";
+});
+
+// 🔹 Guardar gasto
+function guardarGasto(e) {
+  e.preventDefault();
+
+  const concepto = document.getElementById("concepto").value.trim();
+  const monto = parseFloat(document.getElementById("monto").value);
+  const medioPago = document.getElementById("medioPago").value;
+  const observaciones = document.getElementById("observaciones").value.trim();
+  const idCaja = document.getElementById("caja").value;
+
+  if (!concepto || !monto || !medioPago || !idCaja) return alert("Completa todos los campos obligatorios.");
+
+  fetch("insertar_gasto.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      concepto, monto, medioPago, observaciones, idCaja,
+      insumos: JSON.stringify(insumosGasto)
+    })
+  })
+  .then(r => r.text())
+  .then(msg => {
+    alert(msg);
+    insumosGasto = [];
+    document.getElementById("formGasto").reset();
+    listaInsumos.innerHTML = "";
+    cargarGastos();
+    cargarCajas();
+  });
+}
+function cargarGastos() {
+  fetch("listar_gastos.php")
+    .then(res => {
+      if (!res.ok) throw new Error("Error al obtener los gastos");
+      return res.json();
+    })
+    .then(data => {
+      const cont = document.getElementById("listaGastos");
+      cont.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        cont.innerHTML = "<p>No hay gastos registrados todavía.</p>";
         return;
       }
 
-      const rows = data.data;
-      if (rows.length === 0) {
-        lista.innerHTML = '<p>No hay registros aún.</p>';
-        return;
-      }
-
-      let html = `
+      // Crear tabla
+      let tabla = `
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Concepto</th>
-              <th>Insumo</th>
-              <th>Categoría</th>
-              <th>Monto</th>
               <th>Fecha</th>
-              <th>Medio</th>
-              <th>Administrador</th>
+              <th>Concepto</th>
+              <th>Monto</th>
+              <th>Medio de Pago</th>
+              <th>Caja</th>
+              <th>Observaciones</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      rows.forEach((r) => {
-        const admin = r.nombres ? (r.nombres + ' ' + (r.apellidos || '')) : '';
-        html += `
+      data.forEach(g => {
+        tabla += `
           <tr>
-            <td>${r.idRegistroGasto}</td>
-            <td>${escapeHtml(r.concepto)}</td>
-            <td>${escapeHtml(r.insumo || '')}</td>
-            <td>${escapeHtml(r.categoria || '')}</td>
-            <td>$${formatoMiles(Number(r.montoTotal))}</td>
-            <td>${r.fecha}</td>
-            <td>${r.medio || ''}</td>
-            <td>${escapeHtml(admin)}</td>
-          </tr>`;
+            <td>${g.fecha}</td>
+            <td>${g.concepto}</td>
+            <td>$${parseFloat(g.montoTotal).toLocaleString("es-CO")}</td>
+            <td>${g.medioPago}</td>
+            <td>${g.caja}</td>
+            <td>${g.observaciones ? g.observaciones : ""}</td>
+          </tr>
+        `;
       });
 
-      html += '</tbody></table>';
-      lista.innerHTML = html;
-    } catch (e) {
-      lista.innerHTML = '<p>Error de conexión al cargar registros.</p>';
-    }
-  }
-
-  // 🔹 Enviar formulario de gasto
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-
-    try {
-      const res = await fetch('insertar_gasto.php', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (data.success) {
-        mostrarMensaje('Gasto registrado correctamente');
-        form.reset();
-        cargarRegistros();
-      } else {
-        mostrarMensaje(data.message || 'Error al guardar', true);
-      }
-    } catch (error) {
-      mostrarMensaje('Error al enviar los datos.', true);
-    }
-  });
-
-  // 🟡 CONTROL DEL REGISTRO DE CATEGORÍA
-  const btnNuevaCat = document.getElementById('btnNuevaCategoria');
-  const boxCategoria = document.getElementById('nuevaCategoriaBox');
-  const cancelarCategoria = document.getElementById('cancelarCategoria');
-  const guardarCategoria = document.getElementById('guardarCategoria');
-
-  if (btnNuevaCat) {
-    btnNuevaCat.addEventListener('click', () => {
-      boxCategoria.style.display = 'block';
-      document.getElementById('nombreCategoria').focus();
+      tabla += "</tbody></table>";
+      cont.innerHTML = tabla;
+    })
+    .catch(err => {
+      console.error("Error cargando los gastos:", err);
+      document.getElementById("listaGastos").innerHTML = "<p style='color:red'>Error al cargar los gastos.</p>";
     });
-  }
+}
 
-  if (cancelarCategoria) {
-    cancelarCategoria.addEventListener('click', () => {
-      boxCategoria.style.display = 'none';
-      document.getElementById('nombreCategoria').value = '';
-    });
-  }
-
-  // Guardar categoría (real con PHP)
-  if (guardarCategoria) {
-    guardarCategoria.addEventListener('click', async () => {
-      const nombre = document.getElementById('nombreCategoria').value.trim();
-      if (!nombre) {
-        alert('Ingrese un nombre para la categoría');
-        return;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append('nombre', nombre);
-
-        const res = await fetch('insertar_categoria.php', { method: 'POST', body: formData });
-        const data = await res.json();
-
-        if (data.success) {
-          alert(`✅ ${data.message}`);
-          boxCategoria.style.display = 'none';
-          document.getElementById('nombreCategoria').value = '';
-
-          // 🔹 Actualizar lista de categorías automáticamente
-          await cargarCategorias();
-        } else {
-          alert(`⚠️ ${data.message}`);
-        }
-      } catch (err) {
-        alert('Error al conectar con el servidor.');
-      }
-    });
-  }
-
-  // 🔹 Cargar categorías y registros al iniciar
-  cargarCategorias();
-  cargarRegistros();
-});

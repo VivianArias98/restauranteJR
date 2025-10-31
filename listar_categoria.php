@@ -1,22 +1,49 @@
 <?php
-// Mostrar errores
+// =====================================================
+// ✅ CONFIGURACIÓN Y MANEJO DE ERRORES
+// =====================================================
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
-require_once 'conexion.php';
+include_once 'conexion.php';
 
-// Consulta la tabla "categoria" (asegúrate que exista con ese nombre)
-$sql = "SELECT idCategoria, nombre FROM categoria ORDER BY nombre ASC";
-$result = $conn->query($sql);
-
-$categorias = [];
-if ($result && $result->num_rows > 0) {
-  while ($row = $result->fetch_assoc()) {
-    $categorias[] = $row;
-  }
+// =====================================================
+// ✅ VALIDAR CONEXIÓN
+// =====================================================
+if (!isset($conn) || $conn->connect_error) {
+    echo json_encode([
+        "error" => "Error de conexión: " . ($conn->connect_error ?? 'No se creó la variable $conn')
+    ]);
+    exit;
 }
 
-echo json_encode(["success" => true, "data" => $categorias]);
+// =====================================================
+// ✅ CONSULTAR CATEGORÍAS
+// =====================================================
+$sql = "SELECT idCategoria, nombre, descripcion FROM categoria ORDER BY idCategoria DESC";
+$resultado = $conn->query($sql);
+
+if (!$resultado) {
+    echo json_encode(["error" => "Error en la consulta: " . $conn->error]);
+    exit;
+}
+
+// =====================================================
+// ✅ CREAR ARRAY DE RESULTADOS
+// =====================================================
+$categorias = [];
+while ($fila = $resultado->fetch_assoc()) {
+    $categorias[] = [
+        "idCategoria" => $fila["idCategoria"],
+        "nombre" => $fila["nombre"],
+        "descripcion" => $fila["descripcion"] ?? ""
+    ];
+}
+
+// =====================================================
+// ✅ DEVOLVER JSON
+// =====================================================
+echo json_encode($categorias, JSON_UNESCAPED_UNICODE);
 $conn->close();
 ?>

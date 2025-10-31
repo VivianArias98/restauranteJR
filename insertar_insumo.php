@@ -1,25 +1,25 @@
 <?php
-// insertar_insumo.php
 header('Content-Type: application/json; charset=utf-8');
 require_once 'conexion.php';
 
-$input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+$nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+$descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
+$idCategoria = isset($_POST['idCategoria']) ? intval($_POST['idCategoria']) : 0;
 
-$nombre = isset($input['nombre']) ? trim($input['nombre']) : '';
-$cantidad = isset($input['cantidad']) ? (int)$input['cantidad'] : 1;
-$precio = isset($input['precio']) ? (float)$input['precio'] : 0.00;
-
-if ($nombre === '' ) {
-    http_response_code(400);
-    echo json_encode(["success" => false, "message" => "Nombre requerido."]);
-    exit;
+if ($nombre === '') {
+  echo json_encode(["success" => false, "message" => "El nombre del insumo es obligatorio."]);
+  exit;
 }
 
-$stmt = $mysqli->prepare("INSERT INTO Insumo (nombre, cantidad, precio) VALUES (?, ?, ?)");
-$stmt->bind_param("sid", $nombre, $cantidad, $precio);
-$stmt->execute();
-$insertId = $stmt->insert_id;
-$stmt->close();
+$stmt = $conn->prepare("INSERT INTO insumo (nombre, descripcion, idCategoria) VALUES (?, ?, ?)");
+$stmt->bind_param("ssi", $nombre, $descripcion, $idCategoria);
 
-echo json_encode(["success" => true, "message" => "Insumo agregado.", "id" => $insertId]);
+if ($stmt->execute()) {
+  echo json_encode(["success" => true, "message" => "Insumo agregado correctamente.", "id" => $stmt->insert_id]);
+} else {
+  echo json_encode(["success" => false, "message" => "Error al registrar el insumo."]);
+}
+
+$stmt->close();
+$conn->close();
 ?>

@@ -4,12 +4,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  height: 100vh;
+  min-height: 100vh; /* ✅ Cambia height por min-height */
   margin: 0;
   padding-top: 40px;
 }
 
+
 .container {
+  
   width: 900px; /* 🔹 Más ancho */
   background: #fff;
   border-radius: 20px;
@@ -37,7 +39,7 @@ input, select, textarea {
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #ddd;
-  font-size: 15px;
+  font-size: 5px;
   margin-bottom: 15px;
   transition: border 0.2s ease;
 }

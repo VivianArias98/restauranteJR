@@ -1,76 +1,80 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-require_once 'conexion.php';
-
-if (!isset($_POST['concepto'], $_POST['monto'], $_POST['medioPago'])) {
-    echo json_encode(["success" => false, "message" => "Faltan datos."]);
-    exit;
-}
-
-$concepto = trim($_POST['concepto']);
-$monto = isset($_POST['monto']) ? floatval(str_replace(['.', ','], ['', '.'], $_POST['monto'])) : null;
-$medioPago = intval($_POST['medioPago']);
-
-// 🔹 ID de la caja principal (ajusta si tienes varias)
-$idCaja = 1;
-
-if ($concepto === '' || $monto <= 0 || $medioPago <= 0) {
-    echo json_encode(["success" => false, "message" => "Datos inválidos."]);
-    exit;
-}
-
+include 'conexion.php';
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn->begin_transaction();
 
 try {
-    // ✅ Verificar saldo actual de la caja
-    $stmtSaldo = $conn->prepare("SELECT saldo FROM caja WHERE idCaja = ?");
-    $stmtSaldo->bind_param("i", $idCaja);
-    $stmtSaldo->execute();
-    $stmtSaldo->bind_result($saldoActual);
-    $stmtSaldo->fetch();
-    $stmtSaldo->close();
+  $concepto = $_POST['concepto'];
+  $monto = $_POST['monto'];
+  $medioPago = $_POST['medioPago'];
+  $idCaja = $_POST['idCaja'];
+  $insumos = json_decode($_POST['insumos'], true);
 
-    if ($saldoActual < $monto) {
-        echo json_encode(["success" => false, "message" => "Saldo insuficiente en la caja para registrar este gasto."]);
-        $conn->rollback();
-        $conn->close();
-        exit;
-    }
+  // 1️⃣ Insertar el gasto principal
+  $stmt = $conn->prepare("INSERT INTO registrogasto (concepto, montoTotal, fecha, idMedioPago, idCaja) VALUES (?, ?, CURDATE(), ?, ?)");
+  $stmt->bind_param("sdii", $concepto, $monto, $medioPago, $idCaja);
+  $stmt->execute();
+  $idGasto = $stmt->insert_id;
+  $stmt->close();
 
-    // ✅ Insertar el registro del gasto
-    $stmt = $conn->prepare("INSERT INTO RegistroGasto (concepto, montoTotal, idMedioPago, idCaja) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("sdii", $concepto, $monto, $medioPago, $idCaja);
+  // 2️⃣ Registrar los insumos del gasto
+  foreach ($insumos as $insumo) {
+    $nombre = $insumo['nombre'];
+    $categoria = $insumo['categoria'];
+
+    // Asegurar categoría
+    $stmt = $conn->prepare("SELECT idCategoria FROM categoria WHERE nombre = ?");
+    $stmt->bind_param("s", $categoria);
     $stmt->execute();
-    $insertId = $stmt->insert_id;
+    $res = $stmt->get_result();
+
+    if ($res->num_rows > 0) {
+      $idCat = $res->fetch_assoc()['idCategoria'];
+    } else {
+      $stmt2 = $conn->prepare("INSERT INTO categoria (nombre) VALUES (?)");
+      $stmt2->bind_param("s", $categoria);
+      $stmt2->execute();
+      $idCat = $stmt2->insert_id;
+      $stmt2->close();
+    }
     $stmt->close();
 
-    // ✅ Descontar saldo de la caja
-    $stmt2 = $conn->prepare("UPDATE caja SET saldo = saldo - ? WHERE idCaja = ?");
-    $stmt2->bind_param("di", $monto, $idCaja);
+    // Asegurar insumo
+    $stmt = $conn->prepare("SELECT idInsumo FROM insumo WHERE nombre = ?");
+    $stmt->bind_param("s", $nombre);
+    $stmt->execute();
+    $res2 = $stmt->get_result();
+
+    if ($res2->num_rows > 0) {
+      $idInsumo = $res2->fetch_assoc()['idInsumo'];
+    } else {
+      $stmt2 = $conn->prepare("INSERT INTO insumo (nombre, idCategoria) VALUES (?, ?)");
+      $stmt2->bind_param("si", $nombre, $idCat);
+      $stmt2->execute();
+      $idInsumo = $stmt2->insert_id;
+      $stmt2->close();
+    }
+    $stmt->close();
+
+    // Registrar relación gasto-insumo (solo IDs)
+    $stmt2 = $conn->prepare("INSERT INTO registroinsumo (idRegistroGasto, idInsumo) VALUES (?, ?)");
+    $stmt2->bind_param("ii", $idGasto, $idInsumo);
     $stmt2->execute();
     $stmt2->close();
+  }
 
-    // Confirmar transacción
-    $conn->commit();
+  // 3️⃣ Actualizar saldo de la caja
+  $stmt3 = $conn->prepare("UPDATE caja SET saldo = saldo - ? WHERE idCaja = ?");
+  $stmt3->bind_param("di", $monto, $idCaja);
+  $stmt3->execute();
+  $stmt3->close();
 
-    // ✅ Devolver el nuevo registro insertado
-    $sql = "SELECT rg.idRegistroGasto, rg.concepto, rg.montoTotal, rg.fecha, 
-                   md.tipo AS medio, c.nombre AS caja
-            FROM RegistroGasto rg
-            LEFT JOIN MedioDePago md ON rg.idMedioPago = md.idMedioPago
-            LEFT JOIN Caja c ON rg.idCaja = c.idCaja
-            WHERE rg.idRegistroGasto = ?";
-    $stmt3 = $conn->prepare($sql);
-    $stmt3->bind_param("i", $insertId);
-    $stmt3->execute();
-    $res = $stmt3->get_result();
-    $row = $res->fetch_assoc();
+  $conn->commit();
 
-    echo json_encode(["success" => true, "message" => "Gasto registrado correctamente.", "registro" => $row]);
-
+  echo "✅ Gasto registrado correctamente";
 } catch (Exception $e) {
-    $conn->rollback();
-    echo json_encode(["success" => false, "message" => "Error al guardar el gasto: " . $e->getMessage()]);
+  $conn->rollback();
+  echo "❌ Error: " . $e->getMessage();
 }
 
 $conn->close();

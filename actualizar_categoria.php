@@ -1,31 +1,22 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-require_once 'conexion.php';
+header('Content-Type: application/json');
+include 'conexion.php';
 
-$id = intval($_POST['idCategoria'] ?? 0);
-$nombre = trim($_POST['nombre'] ?? '');
+$id = $_POST['id'] ?? '';
+$nombre = $_POST['nombre'] ?? '';
+$descripcion = $_POST['descripcion'] ?? '';
 
-if ($id <= 0 || empty($nombre)) {
-    echo json_encode(['success' => false, 'message' => 'Datos inválidos.']);
+if ($id === '' || $nombre === '') {
+    echo json_encode(["success" => false, "message" => "Datos incompletos"]);
     exit;
 }
 
-$sql = "UPDATE categoria SET nombre = ? WHERE idCategoria = ?";
-$stmt = $conn->prepare($sql);
+$stmt = $conexion->prepare("UPDATE categoria SET nombre = ?, descripcion = ? WHERE idCategoria = ?");
+$stmt->bind_param("ssi", $nombre, $descripcion, $id);
+$stmt->execute();
 
-if (!$stmt) {
-    echo json_encode(['success' => false, 'message' => 'Error en la preparación de la consulta: ' . $conn->error]);
-    exit;
-}
-
-$stmt->bind_param("si", $nombre, $id);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => '✅ Categoría actualizada correctamente.']);
-} else {
-    echo json_encode(['success' => false, 'message' => '⚠️ No se pudo actualizar la categoría: ' . $stmt->error]);
-}
+echo json_encode(["success" => true, "message" => "Categoría actualizada correctamente"]);
 
 $stmt->close();
-$conn->close();
+$conexion->close();
 ?>

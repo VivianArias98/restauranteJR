@@ -10,38 +10,40 @@
     <h1>Registro de Gastos</h1>
 
     <form id="formGasto" class="form-card">
+
+      <!-- 🔹 Caja actual -->
+      <div class="caja-section">
+        <label>Caja actual:</label>
+        <select name="caja" id="caja"></select>
+        <small id="saldoCaja"></small>
+      </div>
+
+      <button type="button" id="btnCaja" class="btn btn-secundario">💰 Ir a Caja</button>
+
       <label>Concepto</label>
       <input type="text" name="concepto" id="concepto" placeholder="Ej: Compra de insumos" required>
 
-      <!-- 🔹 Sección para INSUMO -->
-<div class="insumo-section">
-  <label>Insumo</label>
-  <input type="text" name="insumo" id="insumo" placeholder="Ej: Tomate" required>
+      <div class="insumo-section">
+        <label>Insumo</label>
+        <input type="text" name="insumo" id="insumo" placeholder="Ej: Tomate" required>
 
-  <label>Categoría</label>
-  <select name="categoria" id="categoria">
-    <option value="">Seleccione una categoría...</option>
-    <option value="1">Verduras y Hortalizas</option>
-    <option value="2">Frutas</option>
-    <option value="3">Granos</option>
-  </select>
+        <label>Categoría</label>
+        <select name="categoria" id="categoria">
+          <option value="">Seleccione una categoría...</option>
+        </select>
 
-  <!-- 🔹 Botón para abrir formulario de nueva categoría -->
-  <button type="button" id="btnNuevaCategoria" class="btn btn-secundario">Registrar categoría</button>
-</div>
+        <button type="button" id="btnNuevaCategoria" class="btn btn-secundario">Registrar categoría</button>
+      </div>
 
-<!-- 🔹 Formulario oculto para registrar nueva categoría -->
-<div id="nuevaCategoriaBox" class="categoria-box" style="display: none;">
-  <h3>Registrar nueva categoría</h3>
-  <label>Nombre de la categoría</label>
-  <input type="text" id="nombreCategoria" placeholder="Ej: Lácteos">
-  
-  <div class="button-group">
-    <button type="button" id="guardarCategoria" class="btn btn-guardar">Guardar</button>
-    <button type="button" id="cancelarCategoria" class="btn btn-cancelar">Cancelar</button>
-  </div>
-</div>
-
+      <div id="nuevaCategoriaBox" class="categoria-box" style="display: none;">
+        <h3>Registrar nueva categoría</h3>
+        <label>Nombre de la categoría</label>
+        <input type="text" id="nombreCategoria" placeholder="Ej: Lácteos">
+        <div class="button-group">
+          <button type="button" id="guardarCategoria" class="btn btn-guardar">Guardar</button>
+          <button type="button" id="cancelarCategoria" class="btn btn-cancelar">Cancelar</button>
+        </div>
+      </div>
 
       <label>Monto</label>
       <input type="number" name="monto" id="monto" step="0.01" placeholder="$ 0.00" required>
@@ -70,12 +72,10 @@
       <div id="listaGastos"></div>
     </div>
 
-     <div class="button-group" style="margin-bottom: 20px;">
-  <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver</button>
-</div>
+    <div class="button-group" style="margin-bottom: 20px;">
+      <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver</button>
+    </div>
   </div>
- 
-
 
   <script src="js.js"></script>
 </body>

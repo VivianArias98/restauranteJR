@@ -9,11 +9,13 @@
   <div class="container">
     <h1>Gestión de Categorías</h1>
 
-
     <!-- 🔹 Formulario de registro -->
     <form id="formCategoria" class="form-card">
       <label>Nombre de la categoría</label>
       <input type="text" id="nombreCategoria" name="nombre" placeholder="Ej: Lácteos" required>
+
+      <label>Descripción (opcional)</label>
+      <textarea id="descripcionCategoria" name="descripcion" placeholder="Ej: Productos derivados de la leche"></textarea>
 
       <div class="button-group">
         <button type="submit" class="btn btn-guardar">Guardar</button>
@@ -31,37 +33,39 @@
   </div>
 
   <!-- 🔹 Modal de edición -->
-  <div id="modalEditar" class="modal">
+  <div id="modalEditar" class="modal" style="display:none;">
     <div class="modal-content">
       <h3>Modificar categoría</h3>
       <input type="hidden" id="editarId">
+
       <label>Nuevo nombre</label>
       <input type="text" id="editarNombre" placeholder="Nuevo nombre de categoría">
+
+      <label>Descripción (opcional)</label>
+      <textarea id="editarDescripcion" placeholder="Nueva descripción"></textarea>
+
       <div class="button-group">
         <button type="button" id="guardarCambios" class="btn btn-guardar">Guardar cambios</button>
         <button type="button" id="cerrarModal" class="btn btn-cancelar">Cancelar</button>
       </div>
     </div>
-    
   </div>
+
   <!-- 🔙 Botón Volver -->
-    <div class="button-group" style="margin-bottom: 20px;">
-      <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver </button>
-    </div>
+  <div class="button-group" style="margin-top: 20px;">
+    <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver</button>
+  </div>
 
-  <script src="categorias.js"></script>
-  
+<!-- 🔹 Conexión del archivo JavaScript -->
+<script src="./categorias.js" type="text/javascript"></script>
 
-  <!-- 🔹 Script del botón Volver -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const btnVolver = document.getElementById('btnVolver');
       if (btnVolver) {
         btnVolver.addEventListener('click', (e) => {
           e.preventDefault();
-          // Si home.html está en la misma carpeta:
           window.location.href = 'home.html';
-          // Si está en otra carpeta, ajusta con: ../home.html
         });
       }
     });
