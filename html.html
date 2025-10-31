@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <title>Registro de Gastos</title>
   <link rel="stylesheet" href="css.css">
+  <style>
+    datalist option {
+      font-size: 14px;
+      padding: 4px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -23,9 +29,11 @@
       <label>Concepto</label>
       <input type="text" name="concepto" id="concepto" placeholder="Ej: Compra de insumos" required>
 
+      <!-- 🔹 INSUMOS -->
       <div class="insumo-section">
         <label>Insumo</label>
-        <input type="text" name="insumo" id="insumo" placeholder="Ej: Tomate" required>
+        <input list="listaInsumosSugeridos" name="insumo" id="insumo" placeholder="Escribe o selecciona un insumo" required>
+        <datalist id="listaInsumosSugeridos"></datalist>
 
         <label>Categoría</label>
         <select name="categoria" id="categoria">
@@ -35,6 +43,7 @@
         <button type="button" id="btnNuevaCategoria" class="btn btn-secundario">Registrar categoría</button>
       </div>
 
+      <!-- 🔹 NUEVA CATEGORÍA -->
       <div id="nuevaCategoriaBox" class="categoria-box" style="display: none;">
         <h3>Registrar nueva categoría</h3>
         <label>Nombre de la categoría</label>

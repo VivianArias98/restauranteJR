@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   cargarCajas();
   cargarCategorias();
+  cargarInsumos();
   cargarGastos();
 
   document.getElementById("btnGuardar").addEventListener("click", guardarGasto);
@@ -11,8 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 let insumosGasto = [];
+let listaInsumos = []; // 🔸 guardará todos los insumos con sus categorías
 
-// 🔹 Cargar cajas y mostrar saldo
+// 🔹 Cargar cajas
 function cargarCajas() {
   fetch("listar_caja.php")
     .then(r => r.json())
@@ -28,12 +30,6 @@ function cargarCajas() {
         selectCaja.appendChild(opt);
       });
 
-      selectCaja.addEventListener("change", () => {
-        const caja = data.find(x => x.idCaja == selectCaja.value);
-        saldoCaja.textContent = `Saldo actual: $${parseFloat(caja.saldo).toFixed(2)}`;
-      });
-
-      // Mostrar saldo inicial
       if (data.length > 0) {
         const caja = data[0];
         selectCaja.value = caja.idCaja;
@@ -58,17 +54,57 @@ function cargarCategorias() {
     });
 }
 
-// 🔹 Mostrar formulario para nueva categoría
+// 🔹 Cargar insumos (autocompletar)
+function cargarInsumos() {
+  fetch("listar_insumo.php")
+    .then(r => r.json())
+    .then(data => {
+      listaInsumos = data; // guardar para búsqueda
+      const datalist = document.getElementById("listaInsumosSugeridos");
+      datalist.innerHTML = "";
+      data.forEach(i => {
+        const opt = document.createElement("option");
+        opt.value = i.insumo;
+        opt.textContent = `${i.insumo} (${i.categoria})`;
+        datalist.appendChild(opt);
+      });
+    })
+    .catch(err => console.error("Error cargando insumos:", err));
+}
+
+// 🔹 Autocompletar categoría al escribir un insumo
+document.addEventListener("input", e => {
+  if (e.target.id === "insumo") {
+    const nombre = e.target.value.trim().toLowerCase();
+    const encontrado = listaInsumos.find(i => i.insumo.toLowerCase() === nombre);
+    const selectCat = document.getElementById("categoria");
+
+    if (encontrado) {
+      // Si el insumo existe → selecciona automáticamente su categoría
+      for (let opt of selectCat.options) {
+        if (opt.value === encontrado.categoria) {
+          opt.selected = true;
+          break;
+        }
+      }
+      selectCat.disabled = true;
+    } else {
+      // Si no existe → habilita para elegir categoría manualmente
+      selectCat.disabled = false;
+      selectCat.value = "";
+    }
+  }
+});
+
+// 🔹 Mostrar / ocultar categoría
 function mostrarNuevaCategoria() {
   document.getElementById("nuevaCategoriaBox").style.display = "block";
 }
-
-// 🔹 Ocultar formulario de nueva categoría
 function ocultarNuevaCategoria() {
   document.getElementById("nuevaCategoriaBox").style.display = "none";
 }
 
-// 🔹 Guardar nueva categoría
+// 🔹 Guardar categoría
 function guardarCategoria() {
   const nombre = document.getElementById("nombreCategoria").value.trim();
   if (!nombre) return alert("Escribe un nombre para la categoría.");
@@ -78,35 +114,43 @@ function guardarCategoria() {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: "nombre=" + encodeURIComponent(nombre)
   })
-  .then(r => r.text())
-  .then(msg => {
-    alert(msg);
-    cargarCategorias();
-    ocultarNuevaCategoria();
-  });
+    .then(r => r.json())
+    .then(data => {
+      alert(data.message || "Categoría registrada correctamente.");
+      if (data.success) {
+        cargarCategorias();
+        ocultarNuevaCategoria();
+      }
+    });
 }
 
-// 🔹 Añadir varios insumos
+// 🔹 Crear botón para agregar insumo
 const btnAgregarInsumo = document.createElement("button");
 btnAgregarInsumo.textContent = "➕ Agregar insumo";
 btnAgregarInsumo.className = "btn btn-secundario";
 document.querySelector(".insumo-section").appendChild(btnAgregarInsumo);
 
-const listaInsumos = document.createElement("div");
-listaInsumos.id = "listaInsumos";
-document.querySelector(".insumo-section").appendChild(listaInsumos);
+const lista = document.createElement("div");
+lista.id = "listaInsumos";
+document.querySelector(".insumo-section").appendChild(lista);
 
+// 🔹 Agregar insumo
 btnAgregarInsumo.addEventListener("click", () => {
   const nombre = document.getElementById("insumo").value.trim();
   const categoria = document.getElementById("categoria").value;
-  if (!nombre || !categoria) return alert("Completa el nombre del insumo y selecciona una categoría.");
+
+  if (!nombre) return alert("Escribe o selecciona un insumo.");
+  if (!categoria) return alert("Selecciona una categoría válida.");
 
   insumosGasto.push({ nombre, categoria });
+
   const item = document.createElement("p");
-  item.textContent = `🟡 ${nombre} (${categoria})`;
-  listaInsumos.appendChild(item);
+  item.textContent = `🟢 ${nombre} (${categoria})`;
+  lista.appendChild(item);
 
   document.getElementById("insumo").value = "";
+  document.getElementById("categoria").disabled = false;
+  document.getElementById("categoria").value = "";
 });
 
 // 🔹 Guardar gasto
@@ -119,7 +163,8 @@ function guardarGasto(e) {
   const observaciones = document.getElementById("observaciones").value.trim();
   const idCaja = document.getElementById("caja").value;
 
-  if (!concepto || !monto || !medioPago || !idCaja) return alert("Completa todos los campos obligatorios.");
+  if (!concepto || !monto || !medioPago || !idCaja)
+    return alert("Completa todos los campos obligatorios.");
 
   fetch("insertar_gasto.php", {
     method: "POST",
@@ -129,22 +174,28 @@ function guardarGasto(e) {
       insumos: JSON.stringify(insumosGasto)
     })
   })
-  .then(r => r.text())
-  .then(msg => {
-    alert(msg);
-    insumosGasto = [];
-    document.getElementById("formGasto").reset();
-    listaInsumos.innerHTML = "";
-    cargarGastos();
-    cargarCajas();
-  });
+    .then(r => r.json())
+    .then(data => {
+      alert(data.message);
+      if (data.success) {
+        insumosGasto = [];
+        document.getElementById("formGasto").reset();
+        lista.innerHTML = "";
+        cargarInsumos();
+        cargarGastos();
+        cargarCajas();
+      }
+    })
+    .catch(err => {
+      console.error("Error al guardar gasto:", err);
+      alert("❌ Error al guardar el gasto.");
+    });
 }
+
+// 🔹 Cargar lista de gastos
 function cargarGastos() {
   fetch("listar_gastos.php")
-    .then(res => {
-      if (!res.ok) throw new Error("Error al obtener los gastos");
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       const cont = document.getElementById("listaGastos");
       cont.innerHTML = "";
@@ -154,7 +205,6 @@ function cargarGastos() {
         return;
       }
 
-      // Crear tabla
       let tabla = `
         <table>
           <thead>
@@ -178,17 +228,12 @@ function cargarGastos() {
             <td>$${parseFloat(g.montoTotal).toLocaleString("es-CO")}</td>
             <td>${g.medioPago}</td>
             <td>${g.caja}</td>
-            <td>${g.observaciones ? g.observaciones : ""}</td>
+            <td>${g.observaciones || ""}</td>
           </tr>
         `;
       });
 
       tabla += "</tbody></table>";
       cont.innerHTML = tabla;
-    })
-    .catch(err => {
-      console.error("Error cargando los gastos:", err);
-      document.getElementById("listaGastos").innerHTML = "<p style='color:red'>Error al cargar los gastos.</p>";
     });
 }
-
