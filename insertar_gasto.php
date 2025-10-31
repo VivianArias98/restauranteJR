@@ -4,36 +4,44 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn->begin_transaction();
 
 try {
-  $concepto = $_POST['concepto'] ?? '';
-  $monto = $_POST['monto'] ?? 0;
-  $medioPago = $_POST['medioPago'] ?? '';
-  $idCaja = $_POST['idCaja'] ?? '';
-  $insumos = json_decode($_POST['insumos'], true);
+  // 🔹 Capturar datos
+  $concepto = trim($_POST['concepto'] ?? '');
+  $monto = floatval($_POST['monto'] ?? 0);
+  $medioPago = intval($_POST['medioPago'] ?? 0);
+  $idCaja = intval($_POST['idCaja'] ?? 0);
+  $observaciones = trim($_POST['observaciones'] ?? '');
+  $insumos = json_decode($_POST['insumos'] ?? '[]', true);
 
-  if (!$concepto || !$monto || !$medioPago || !$idCaja) {
+  if ($concepto === '' || $monto <= 0 || $medioPago <= 0 || $idCaja <= 0) {
     throw new Exception("Datos incompletos para registrar el gasto.");
   }
 
-  // 1️⃣ Insertar gasto principal
+  // 🔹 1️⃣ Insertar gasto principal (ahora con observaciones)
   $stmt = $conn->prepare("
-    INSERT INTO registrogasto (concepto, montoTotal, fecha, idMedioPago, idCaja)
-    VALUES (?, ?, CURDATE(), ?, ?)
+    INSERT INTO registrogasto (concepto, montoTotal, observaciones, fecha, idMedioPago, idCaja)
+    VALUES (?, ?, ?, CURDATE(), ?, ?)
   ");
-  $stmt->bind_param("sdii", $concepto, $monto, $medioPago, $idCaja);
+  $stmt->bind_param("sdsii", $concepto, $monto, $observaciones, $medioPago, $idCaja);
   $stmt->execute();
   $idGasto = $stmt->insert_id;
   $stmt->close();
 
-  // 2️⃣ Procesar insumos
-  foreach ($insumos as $insumo) {
-    $nombre = trim($insumo['nombre']);
-    $categoria = trim($insumo['categoria']);
+  $ultimoIdInsumo = null;
+  $ultimoIdCategoria = null;
 
-    // Verificar o crear categoría
+  // 🔹 2️⃣ Procesar insumos
+  foreach ($insumos as $insumo) {
+    $nombre = trim($insumo['nombre'] ?? '');
+    $categoria = trim($insumo['categoria'] ?? '');
+
+    if ($nombre === '' || $categoria === '') continue;
+
+    // Buscar o crear categoría
     $stmt = $conn->prepare("SELECT idCategoria FROM categoria WHERE nombre = ?");
     $stmt->bind_param("s", $categoria);
     $stmt->execute();
     $res = $stmt->get_result();
+
     if ($res->num_rows > 0) {
       $idCat = $res->fetch_assoc()['idCategoria'];
     } else {
@@ -45,11 +53,12 @@ try {
     }
     $stmt->close();
 
-    // Verificar o crear insumo
+    // Buscar o crear insumo
     $stmt = $conn->prepare("SELECT idInsumo FROM insumo WHERE nombre = ?");
     $stmt->bind_param("s", $nombre);
     $stmt->execute();
     $res2 = $stmt->get_result();
+
     if ($res2->num_rows > 0) {
       $idInsumo = $res2->fetch_assoc()['idInsumo'];
     } else {
@@ -61,7 +70,11 @@ try {
     }
     $stmt->close();
 
-    // 3️⃣ Relacionar gasto con insumo
+    // Guardamos el último insumo y categoría (para asociarlos al gasto)
+    $ultimoIdInsumo = $idInsumo;
+    $ultimoIdCategoria = $idCat;
+
+    // Registrar relación gasto–insumo
     $stmt3 = $conn->prepare("
       INSERT INTO registroinsumo (idRegistroGasto, idInsumo, nombre, descripcion)
       VALUES (?, ?, ?, '')
@@ -71,14 +84,22 @@ try {
     $stmt3->close();
   }
 
-  // 4️⃣ Actualizar saldo de la caja
+  // 🔹 3️⃣ Actualizar registrogasto con último insumo y categoría
+  if ($ultimoIdInsumo && $ultimoIdCategoria) {
+    $stmt = $conn->prepare("UPDATE registrogasto SET idInsumo = ?, idCategoria = ? WHERE idRegistroGasto = ?");
+    $stmt->bind_param("iii", $ultimoIdInsumo, $ultimoIdCategoria, $idGasto);
+    $stmt->execute();
+    $stmt->close();
+  }
+
+  // 🔹 4️⃣ Actualizar saldo de caja
   $stmt4 = $conn->prepare("UPDATE caja SET saldo = saldo - ? WHERE idCaja = ?");
   $stmt4->bind_param("di", $monto, $idCaja);
   $stmt4->execute();
   $stmt4->close();
 
   $conn->commit();
-  echo json_encode(["success" => true, "message" => "✅ Gasto e insumos registrados correctamente"]);
+  echo json_encode(["success" => true, "message" => "✅ Gasto registrado correctamente con observaciones e insumos"]);
 
 } catch (Exception $e) {
   $conn->rollback();

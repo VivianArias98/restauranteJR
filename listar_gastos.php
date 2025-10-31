@@ -17,7 +17,7 @@ SELECT
     g.montoTotal,
     g.observaciones,
     g.fecha,
-    g.idMedioPago AS medioPago,   -- ← el medio de pago viene directo de registrogasto
+    g.idMedioPago,
     cja.nombre AS caja,
     GROUP_CONCAT(DISTINCT i.nombre SEPARATOR ', ') AS insumos,
     GROUP_CONCAT(DISTINCT cat.nombre SEPARATOR ', ') AS categorias
@@ -32,15 +32,10 @@ ORDER BY g.fecha DESC, g.idRegistroGasto DESC
 
 try {
     $resultado = $conn->query($sql);
-
-    if (!$resultado) {
-        throw new Exception("Error en la consulta SQL: " . $conn->error);
-    }
-
     $gastos = [];
+
     while ($fila = $resultado->fetch_assoc()) {
-        // Convertir número de medio de pago a texto legible
-        $medioPagoTexto = match ((int)$fila["medioPago"]) {
+        $medioPagoTexto = match ((int)$fila["idMedioPago"]) {
             1 => "Efectivo",
             2 => "Tarjeta",
             3 => "Transferencia",
@@ -48,20 +43,18 @@ try {
         };
 
         $gastos[] = [
-            "idRegistroGasto" => $fila["idRegistroGasto"],
-            "concepto" => $fila["concepto"],
-            "montoTotal" => $fila["montoTotal"],
-            "observaciones" => $fila["observaciones"],
             "fecha" => $fila["fecha"],
+            "concepto" => $fila["concepto"],
+            "insumos" => $fila["insumos"] ?: "-",
+            "categorias" => $fila["categorias"] ?: "-",
+            "montoTotal" => $fila["montoTotal"],
             "medioPago" => $medioPagoTexto,
             "caja" => $fila["caja"],
-            "insumos" => $fila["insumos"],
-            "categorias" => $fila["categorias"]
+            "observaciones" => $fila["observaciones"] ?: "-"
         ];
     }
 
     echo json_encode($gastos, JSON_UNESCAPED_UNICODE);
-
 } catch (Exception $e) {
     echo json_encode(["error" => $e->getMessage()]);
 }
