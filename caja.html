@@ -7,56 +7,36 @@
 </head>
 <body>
   <div class="container">
-    <h1>Gestión de Caja</h1>
+    <h1>💰 Gestión de Caja</h1>
 
-    <div id="infoCaja"></div>
+    <div class="form-card">
+      <label for="selectCaja">Seleccionar caja:</label>
+      <select id="selectCaja"></select>
 
-    <form id="formIngreso">
-      <label>Monto de ingreso</label>
+      <div id="infoCaja" class="info-box"></div>
+    </div>
+
+    <form id="formIngreso" class="form-card">
+      <h3>Registrar ingreso</h3>
+
+      <label>Monto del ingreso</label>
       <input type="number" id="montoIngreso" step="0.01" placeholder="$ 0.00" required>
+
+      <label>Descripción (opcional)</label>
+      <input type="text" id="descripcionIngreso" placeholder="Ej: Venta del día">
 
       <div class="button-group">
         <button type="submit" class="btn btn-guardar">Registrar ingreso</button>
         <button type="button" id="btnVolver" class="btn btn-cancelar">← Volver</button>
       </div>
     </form>
+
+    <div class="lista-container">
+      <h2>📜 Historial de ingresos</h2>
+      <div id="listaIngresos"></div>
+    </div>
   </div>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    cargarCaja();
-    document.getElementById("formIngreso").addEventListener("submit", registrarIngreso);
-    document.getElementById("btnVolver").addEventListener("click", () => window.location.href = "html.html");
-  });
-
-  function cargarCaja() {
-    fetch("obtener_cajas.php")
-      .then(res => res.json())
-      .then(data => {
-        const activa = data.find(c => c.estado === "activa");
-        document.getElementById("infoCaja").innerHTML = `
-          <h3>${activa.nombre}</h3>
-          <p><strong>Saldo actual:</strong> $${activa.saldo}</p>
-        `;
-      });
-  }
-
-  function registrarIngreso(e) {
-    e.preventDefault();
-    const monto = document.getElementById("montoIngreso").value;
-
-    fetch("registrar_ingreso.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "monto=" + monto
-    })
-    .then(res => res.text())
-    .then(msg => {
-      alert(msg);
-      cargarCaja();
-      document.getElementById("formIngreso").reset();
-    });
-  }
-  </script>
+  <script src="caja.js"></script>
 </body>
 </html>

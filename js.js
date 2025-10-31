@@ -13,7 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let insumosGasto = [];
 let listaInsumos = [];
-
+// ✅ 🔹 NUEVO: botón para ir a la sección de caja
+  document.getElementById("btnCaja").addEventListener("click", () => {
+    window.location.href = "caja.html";
+  });
 // 🔹 Cargar cajas y mostrar saldo dinámico con aviso al usuario
 function cargarCajas() {
   fetch("listar_caja.php")

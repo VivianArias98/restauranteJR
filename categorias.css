@@ -277,3 +277,107 @@ td .btn {
 .modal-content .button-group {
   justify-content: space-between;
 }
+
+
+
+/* caja*/
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f7f5;
+  color: #222;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.form-card {
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  background: #fff;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-top: 10px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.btn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-guardar {
+  background-color: #00b894;
+  color: white;
+}
+
+.btn-cancelar {
+  background-color: #d63031;
+  color: white;
+}
+
+.btn:hover {
+  transform: scale(1.03);
+}
+
+.info-box {
+  margin-top: 15px;
+  background: #f1f8f1;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.lista-container {
+  margin-top: 30px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f2b600;
+  color: #000;
+  text-align: left;
+}
+
+td {
+  background: #fff;
+}
