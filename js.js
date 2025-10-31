@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 let insumosGasto = [];
-let listaInsumos = []; // 🔸 guardará todos los insumos con sus categorías
+let listaInsumos = [];
 
 // 🔹 Cargar cajas
 function cargarCajas() {
@@ -54,12 +54,12 @@ function cargarCategorias() {
     });
 }
 
-// 🔹 Cargar insumos (autocompletar)
+// 🔹 Cargar insumos (para autocompletar)
 function cargarInsumos() {
   fetch("listar_insumo.php")
     .then(r => r.json())
     .then(data => {
-      listaInsumos = data; // guardar para búsqueda
+      listaInsumos = data;
       const datalist = document.getElementById("listaInsumosSugeridos");
       datalist.innerHTML = "";
       data.forEach(i => {
@@ -80,7 +80,6 @@ document.addEventListener("input", e => {
     const selectCat = document.getElementById("categoria");
 
     if (encontrado) {
-      // Si el insumo existe → selecciona automáticamente su categoría
       for (let opt of selectCat.options) {
         if (opt.value === encontrado.categoria) {
           opt.selected = true;
@@ -89,7 +88,6 @@ document.addEventListener("input", e => {
       }
       selectCat.disabled = true;
     } else {
-      // Si no existe → habilita para elegir categoría manualmente
       selectCat.disabled = false;
       selectCat.value = "";
     }
@@ -121,7 +119,8 @@ function guardarCategoria() {
         cargarCategorias();
         ocultarNuevaCategoria();
       }
-    });
+    })
+    .catch(() => alert("❌ Error al registrar la categoría."));
 }
 
 // 🔹 Crear botón para agregar insumo
@@ -192,7 +191,7 @@ function guardarGasto(e) {
     });
 }
 
-// 🔹 Cargar lista de gastos
+// 🔹 Cargar lista de gastos con insumos y categorías
 function cargarGastos() {
   fetch("listar_gastos.php")
     .then(res => res.json())
@@ -200,7 +199,7 @@ function cargarGastos() {
       const cont = document.getElementById("listaGastos");
       cont.innerHTML = "";
 
-      if (!data || data.length === 0) {
+      if (!Array.isArray(data) || data.length === 0) {
         cont.innerHTML = "<p>No hay gastos registrados todavía.</p>";
         return;
       }
@@ -211,6 +210,8 @@ function cargarGastos() {
             <tr>
               <th>Fecha</th>
               <th>Concepto</th>
+              <th>Insumos</th>
+              <th>Categorías</th>
               <th>Monto</th>
               <th>Medio de Pago</th>
               <th>Caja</th>
@@ -225,15 +226,22 @@ function cargarGastos() {
           <tr>
             <td>${g.fecha}</td>
             <td>${g.concepto}</td>
+            <td>${g.insumos || '-'}</td>
+            <td>${g.categorias || '-'}</td>
             <td>$${parseFloat(g.montoTotal).toLocaleString("es-CO")}</td>
             <td>${g.medioPago}</td>
             <td>${g.caja}</td>
-            <td>${g.observaciones || ""}</td>
+            <td>${g.observaciones || ''}</td>
           </tr>
         `;
       });
 
       tabla += "</tbody></table>";
       cont.innerHTML = tabla;
+    })
+    .catch(err => {
+      console.error("Error cargando los gastos:", err);
+      document.getElementById("listaGastos").innerHTML =
+        "<p style='color:red'>Error al cargar los gastos.</p>";
     });
 }

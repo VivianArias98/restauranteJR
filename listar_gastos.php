@@ -1,54 +1,70 @@
 <?php
-include 'conexion.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 header('Content-Type: application/json; charset=utf-8');
+include_once 'conexion.php';
+
+if (!isset($conn) || $conn->connect_error) {
+    echo json_encode(["error" => "Error de conexión a la base de datos: " . ($conn->connect_error ?? 'No se creó la conexión.')]);
+    exit;
+}
 
 $sql = "
 SELECT 
-  rg.idRegistroGasto,
-  rg.fecha,
-  rg.concepto,
-  rg.montoTotal,
-  rg.observaciones,
-  c.nombre AS caja,
-  md.tipo AS medioPago,
-  i.nombre AS insumo,
-  cat.nombre AS categoria
-FROM registrogasto rg
-LEFT JOIN caja c ON rg.idCaja = c.idCaja
-LEFT JOIN mediodepago md ON rg.idMedioPago = md.idMedioPago
-LEFT JOIN registroinsumo ri ON rg.idRegistroGasto = ri.idRegistroGasto
+    g.idRegistroGasto,
+    g.concepto,
+    g.montoTotal,
+    g.observaciones,
+    g.fecha,
+    g.idMedioPago AS medioPago,   -- ← el medio de pago viene directo de registrogasto
+    cja.nombre AS caja,
+    GROUP_CONCAT(DISTINCT i.nombre SEPARATOR ', ') AS insumos,
+    GROUP_CONCAT(DISTINCT cat.nombre SEPARATOR ', ') AS categorias
+FROM registrogasto g
+LEFT JOIN caja cja ON g.idCaja = cja.idCaja
+LEFT JOIN registroinsumo ri ON g.idRegistroGasto = ri.idRegistroGasto
 LEFT JOIN insumo i ON ri.idInsumo = i.idInsumo
 LEFT JOIN categoria cat ON i.idCategoria = cat.idCategoria
-ORDER BY rg.idRegistroGasto DESC, i.nombre ASC";
+GROUP BY g.idRegistroGasto
+ORDER BY g.fecha DESC, g.idRegistroGasto DESC
+";
 
-$result = $conn->query($sql);
+try {
+    $resultado = $conn->query($sql);
 
-$gastos = [];
-while ($row = $result->fetch_assoc()) {
-  $id = $row['idRegistroGasto'];
+    if (!$resultado) {
+        throw new Exception("Error en la consulta SQL: " . $conn->error);
+    }
 
-  // Si el gasto no está en el arreglo, lo agregamos
-  if (!isset($gastos[$id])) {
-    $gastos[$id] = [
-      "fecha" => $row["fecha"],
-      "concepto" => $row["concepto"],
-      "montoTotal" => $row["montoTotal"],
-      "medioPago" => $row["medioPago"],
-      "caja" => $row["caja"],
-      "observaciones" => $row["observaciones"],
-      "insumos" => [] // Aquí se guardan los insumos relacionados
-    ];
-  }
+    $gastos = [];
+    while ($fila = $resultado->fetch_assoc()) {
+        // Convertir número de medio de pago a texto legible
+        $medioPagoTexto = match ((int)$fila["medioPago"]) {
+            1 => "Efectivo",
+            2 => "Tarjeta",
+            3 => "Transferencia",
+            default => "N/A"
+        };
 
-  // Agregar los insumos y categorías al gasto correspondiente
-  if ($row["insumo"] !== null) {
-    $gastos[$id]["insumos"][] = [
-      "nombre" => $row["insumo"],
-      "categoria" => $row["categoria"]
-    ];
-  }
+        $gastos[] = [
+            "idRegistroGasto" => $fila["idRegistroGasto"],
+            "concepto" => $fila["concepto"],
+            "montoTotal" => $fila["montoTotal"],
+            "observaciones" => $fila["observaciones"],
+            "fecha" => $fila["fecha"],
+            "medioPago" => $medioPagoTexto,
+            "caja" => $fila["caja"],
+            "insumos" => $fila["insumos"],
+            "categorias" => $fila["categorias"]
+        ];
+    }
+
+    echo json_encode($gastos, JSON_UNESCAPED_UNICODE);
+
+} catch (Exception $e) {
+    echo json_encode(["error" => $e->getMessage()]);
 }
 
-echo json_encode(array_values($gastos), JSON_UNESCAPED_UNICODE);
 $conn->close();
 ?>
