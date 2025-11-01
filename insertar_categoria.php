@@ -31,10 +31,28 @@ if ($nombre === '') {
 }
 
 // =====================================================
-// ✅ Preparar consulta segura
+// ✅ Verificar si la categoría ya existe (sin importar mayúsculas/minúsculas)
+// =====================================================
+$stmt = $conn->prepare("SELECT idCategoria FROM categoria WHERE LOWER(nombre) = LOWER(?) LIMIT 1");
+$stmt->bind_param("s", $nombre);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows > 0) {
+    echo json_encode([
+        "success" => false,
+        "message" => "⚠️ La categoría '$nombre' ya existe en el sistema."
+    ]);
+    $stmt->close();
+    $conn->close();
+    exit;
+}
+$stmt->close();
+
+// =====================================================
+// ✅ Insertar nueva categoría si no existe
 // =====================================================
 $stmt = $conn->prepare("INSERT INTO categoria (nombre, descripcion) VALUES (?, ?)");
-
 if (!$stmt) {
     echo json_encode([
         "success" => false,

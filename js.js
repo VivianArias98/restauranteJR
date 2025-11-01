@@ -19,7 +19,7 @@ document.getElementById("btnCaja").addEventListener("click", () => {
   window.location.href = "caja.html";
 });
 
-// 🔹 Cargar cajas y mantener la activa en todas las páginas
+// 🔹 Cargar cajas
 function cargarCajas() {
   fetch("listar_caja.php")
     .then(r => r.json())
@@ -42,16 +42,12 @@ function cargarCajas() {
       });
 
       const cajaActiva = localStorage.getItem("cajaActiva");
-
       if (cajaActiva) {
         const opcionGuardada = [...selectCaja.options].find(o => o.value === cajaActiva);
         if (opcionGuardada) {
           opcionGuardada.selected = true;
           const saldo = parseFloat(opcionGuardada.dataset.saldo);
           saldoCaja.textContent = `Saldo actual: $${saldo.toLocaleString("es-CO")}`;
-        } else {
-          const primera = data[0];
-          saldoCaja.textContent = `Saldo actual: $${parseFloat(primera.saldo).toLocaleString("es-CO")}`;
         }
       } else {
         const primera = data[0];
@@ -64,10 +60,8 @@ function cargarCajas() {
         const selectedOption = selectCaja.options[selectCaja.selectedIndex];
         const nombreCaja = selectedOption.textContent;
         const saldo = parseFloat(selectedOption.dataset.saldo);
-
         saldoCaja.textContent = `Saldo actual: $${saldo.toLocaleString("es-CO")}`;
         alert(`💰 Cambiaste a la caja "${nombreCaja}".\nSaldo disponible: $${saldo.toLocaleString("es-CO")}`);
-
         localStorage.setItem("cajaActiva", selectedOption.value);
       });
     })
@@ -93,7 +87,7 @@ function cargarCategorias() {
     });
 }
 
-// 🔹 Cargar insumos (para autocompletar)
+// 🔹 Cargar insumos
 function cargarInsumos() {
   fetch("listar_insumo.php")
     .then(r => r.json())
@@ -111,7 +105,7 @@ function cargarInsumos() {
     .catch(err => console.error("Error cargando insumos:", err));
 }
 
-// 🔹 Autocompletar categoría al escribir un insumo
+// 🔹 Autocompletar categoría
 document.addEventListener("input", e => {
   if (e.target.id === "insumo") {
     const nombre = e.target.value.trim().toLowerCase();
@@ -191,7 +185,7 @@ btnAgregarInsumo.addEventListener("click", () => {
   document.getElementById("categoria").value = "";
 });
 
-// 🔹 Guardar gasto (nuevo o edición)
+// 🔹 Guardar gasto
 function guardarGasto(e) {
   e.preventDefault();
 
@@ -236,7 +230,7 @@ function guardarGasto(e) {
     });
 }
 
-// 🔹 Cargar lista de gastos (con diferenciación de eliminados en rojo)
+// 🔹 Cargar lista de gastos
 function cargarGastos() {
   fetch("listar_gastos.php")
     .then(res => res.json())
@@ -267,15 +261,9 @@ function cargarGastos() {
       `;
 
       data.forEach(g => {
-        // ✅ Detección robusta de "eliminado":
-        // - Si viene el campo g.eliminado == 1, o
-        // - Si en observaciones aparece la palabra ELIMINADO (por compatibilidad).
-        const esEliminado =
-          (typeof g.eliminado !== "undefined" && Number(g.eliminado) === 1) ||
-          (g.observaciones && /ELIMINADO/i.test(g.observaciones));
-
-        const estilo = esEliminado ? "style='color:red; text-decoration: line-through;'" : "";
-        const estado = esEliminado ? "❌ Eliminado" : "✅ Activo";
+        const eliminado = g.eliminado == 1 || (g.observaciones && g.observaciones.includes("ELIMINADO"));
+        const estilo = eliminado ? "style='color:red; text-decoration: line-through;'" : "";
+        const estado = eliminado ? "❌ Eliminado" : "✅ Activo";
 
         tabla += `
           <tr ${estilo}>
@@ -287,13 +275,12 @@ function cargarGastos() {
             <td>${g.observaciones || ''}</td>
             <td>${estado}</td>
             <td>
-              ${
-                esEliminado
-                  ? "<small>(Sin acciones)</small>"
-                  : `
-                    <button class="btn-editar" data-id="${g.idRegistroGasto}">✏️</button>
-                    <button class="btn-eliminar" data-id="${g.idRegistroGasto}" data-monto="${g.montoTotal}">🗑️</button>
-                  `
+              ${eliminado
+                ? "<small>(Sin acciones)</small>"
+                : `
+                  <button class="btn-editar" data-id="${g.idRegistroGasto}">✏️</button>
+                  <button class="btn-eliminar" data-id="${g.idRegistroGasto}" data-monto="${g.montoTotal}">🗑️</button>
+                `
               }
             </td>
           </tr>
@@ -310,70 +297,103 @@ function cargarGastos() {
     });
 }
 
-// 🔹 Acciones: Editar / Eliminar
+// 🔹 Editar / Eliminar
 document.addEventListener("click", async (e) => {
   // 🗑️ Eliminar gasto
   if (e.target.classList.contains("btn-eliminar")) {
-    const id = e.target.dataset.id;
+    const id = e.target.dataset.id?.trim();
     const monto = parseFloat(e.target.dataset.monto);
-    const motivo = prompt("Ingrese el motivo de eliminación (dinero devuelto a caja):");
-    if (!motivo || motivo.trim() === "") return alert("Debe ingresar un motivo.");
-    if (confirm(`¿Seguro que desea eliminar el gasto #${id}? Se devolverán $${monto.toFixed(2)} a la caja.`)) {
-      const res = await fetch("eliminar_gasto.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ id, motivo, monto })
-      });
-      const data = await res.json();
-      alert(data.message || "Gasto eliminado correctamente.");
-      cargarGastos();
-      cargarCajas();
-    }
-  }
 
-  // ✏️ Editar gasto (carga todos los datos)
-  if (e.target.classList.contains("btn-editar")) {
-    const id = e.target.dataset.id;
-    const res = await fetch(`obtener_gasto.php?id=${id}`);
-    const gasto = await res.json();
-
-    if (gasto.error) {
-      alert(gasto.error);
+    if (!id || isNaN(Number(id))) {
+      alert("⚠️ No se pudo obtener el ID del gasto para eliminar.");
       return;
     }
 
-    document.getElementById("concepto").value = gasto.concepto;
-    document.getElementById("monto").value = gasto.montoTotal;
-    document.getElementById("medioPago").value = gasto.idMedioPago;
-    document.getElementById("observaciones").value = gasto.observaciones || "";
-    document.getElementById("caja").value = gasto.idCaja;
+    const motivo = prompt("Ingrese el motivo de eliminación (dinero devuelto a caja):");
+    if (!motivo || motivo.trim() === "") return alert("Debe ingresar un motivo.");
+    if (confirm(`¿Seguro que desea eliminar el gasto #${id}? Se devolverán $${monto.toFixed(2)} a la caja.`)) {
+      try {
+        const res = await fetch("eliminar_gasto.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ id, motivo, monto })
+        });
 
-    const lista = document.getElementById("listaInsumos");
-    lista.innerHTML = "";
-    insumosGasto = [];
-    if (gasto.insumos && gasto.insumos.length > 0) {
-      gasto.insumos.forEach(i => {
-        insumosGasto.push({ nombre: i.insumo, categoria: i.categoria });
-        const p = document.createElement("p");
-        p.textContent = `🟢 ${i.insumo} (${i.categoria})`;
-        lista.appendChild(p);
-      });
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Gasto eliminado correctamente.");
+        cargarGastos();
+        cargarCajas();
+      } catch (error) {
+        console.error("Error eliminando gasto:", error);
+        alert("❌ Error al intentar eliminar el gasto.");
+      }
+    }
+  }
+
+  // ✏️ Editar gasto
+  if (e.target.classList.contains("btn-editar")) {
+    let id = e.target.dataset.id;
+    if (!id) {
+      alert("⚠️ El ID del gasto no se encontró.");
+      return;
     }
 
-    const form = document.getElementById("formGasto");
-    form.dataset.editId = id;
+    id = id.replace(/[^0-9]/g, "");
+    if (!id) {
+      alert("⚠️ ID inválido del gasto.");
+      return;
+    }
 
-    document.getElementById("editMsg")?.remove();
-    const msg = document.createElement("div");
-    msg.id = "editMsg";
-    msg.textContent = `🟡 Editando gasto #${id}`;
-    msg.style.background = "#fff3cd";
-    msg.style.color = "#856404";
-    msg.style.padding = "10px";
-    msg.style.margin = "10px 0";
-    msg.style.borderRadius = "8px";
-    document.querySelector(".form-card").prepend(msg);
+    try {
+      const url = `obtener_gasto.php?id=${id}`;
+      console.log("📡 Solicitando:", url);
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Servidor no respondió correctamente.");
+
+      const gasto = await res.json();
+      if (!gasto || gasto.error) {
+        alert(gasto?.error || "No se encontró el gasto especificado.");
+        return;
+      }
+
+      document.getElementById("concepto").value = gasto.concepto;
+      document.getElementById("monto").value = gasto.montoTotal;
+      document.getElementById("medioPago").value = gasto.idMedioPago;
+      document.getElementById("observaciones").value = gasto.observaciones || "";
+      document.getElementById("caja").value = gasto.idCaja;
+
+      const lista = document.getElementById("listaInsumos");
+      lista.innerHTML = "";
+      insumosGasto = [];
+
+      if (gasto.insumos && Array.isArray(gasto.insumos)) {
+        gasto.insumos.forEach(i => {
+          insumosGasto.push({ nombre: i.insumo, categoria: i.categoria });
+          const p = document.createElement("p");
+          p.textContent = `🟢 ${i.insumo} (${i.categoria})`;
+          lista.appendChild(p);
+        });
+      }
+
+      const form = document.getElementById("formGasto");
+      form.dataset.editId = id;
+
+      document.getElementById("editMsg")?.remove();
+      const msg = document.createElement("div");
+      msg.id = "editMsg";
+      msg.textContent = `🟡 Editando gasto #${id}`;
+      msg.style.background = "#fff3cd";
+      msg.style.color = "#856404";
+      msg.style.padding = "10px";
+      msg.style.margin = "10px 0";
+      msg.style.borderRadius = "8px";
+      document.querySelector(".form-card").prepend(msg);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      console.error("❌ Error cargando gasto:", error);
+      alert("Error al obtener los datos del gasto.");
+    }
   }
 });
