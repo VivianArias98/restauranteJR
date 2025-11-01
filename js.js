@@ -13,28 +13,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let insumosGasto = [];
 let listaInsumos = [];
-// ✅ 🔹 NUEVO: botón para ir a la sección de caja
-  document.getElementById("btnCaja").addEventListener("click", () => {
-    window.location.href = "caja.html";
-  });
-// 🔹 Cargar cajas y mostrar saldo dinámico con aviso al usuario
+
+// ✅ Ir a la sección de caja
+document.getElementById("btnCaja").addEventListener("click", () => {
+  window.location.href = "caja.html";
+});
+
+// 🔹 Cargar cajas y mantener la activa en todas las páginas
 function cargarCajas() {
   fetch("listar_caja.php")
     .then(r => r.json())
     .then(data => {
       const selectCaja = document.getElementById("caja");
       const saldoCaja = document.getElementById("saldoCaja");
-
-      // Limpiar select
       selectCaja.innerHTML = "";
 
-      // Si no hay cajas registradas
       if (!data || data.length === 0) {
         saldoCaja.textContent = "⚠️ No hay cajas registradas.";
         return;
       }
 
-      // Llenar el select y guardar saldo en cada opción
       data.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.idCaja;
@@ -43,20 +41,34 @@ function cargarCajas() {
         selectCaja.appendChild(opt);
       });
 
-      // Mostrar saldo de la primera caja
-      const primeraCaja = data[0];
-      saldoCaja.textContent = `Saldo actual: $${parseFloat(primeraCaja.saldo).toLocaleString("es-CO")}`;
+      const cajaActiva = localStorage.getItem("cajaActiva");
 
-      // 🔸 Escuchar cambio de caja
+      if (cajaActiva) {
+        const opcionGuardada = [...selectCaja.options].find(o => o.value === cajaActiva);
+        if (opcionGuardada) {
+          opcionGuardada.selected = true;
+          const saldo = parseFloat(opcionGuardada.dataset.saldo);
+          saldoCaja.textContent = `Saldo actual: $${saldo.toLocaleString("es-CO")}`;
+        } else {
+          const primera = data[0];
+          saldoCaja.textContent = `Saldo actual: $${parseFloat(primera.saldo).toLocaleString("es-CO")}`;
+        }
+      } else {
+        const primera = data[0];
+        selectCaja.value = primera.idCaja;
+        saldoCaja.textContent = `Saldo actual: $${parseFloat(primera.saldo).toLocaleString("es-CO")}`;
+        localStorage.setItem("cajaActiva", primera.idCaja);
+      }
+
       selectCaja.addEventListener("change", () => {
         const selectedOption = selectCaja.options[selectCaja.selectedIndex];
         const nombreCaja = selectedOption.textContent;
         const saldo = parseFloat(selectedOption.dataset.saldo);
 
         saldoCaja.textContent = `Saldo actual: $${saldo.toLocaleString("es-CO")}`;
-
-        // 🔹 Mostrar mensaje al usuario
         alert(`💰 Cambiaste a la caja "${nombreCaja}".\nSaldo disponible: $${saldo.toLocaleString("es-CO")}`);
+
+        localStorage.setItem("cajaActiva", selectedOption.value);
       });
     })
     .catch(err => {
@@ -64,7 +76,6 @@ function cargarCajas() {
       document.getElementById("saldoCaja").textContent = "❌ Error al cargar cajas.";
     });
 }
-
 
 // 🔹 Cargar categorías
 function cargarCategorias() {
@@ -180,7 +191,7 @@ btnAgregarInsumo.addEventListener("click", () => {
   document.getElementById("categoria").value = "";
 });
 
-// 🔹 Guardar gasto
+// 🔹 Guardar gasto (nuevo o edición)
 function guardarGasto(e) {
   e.preventDefault();
 
@@ -189,14 +200,18 @@ function guardarGasto(e) {
   const medioPago = document.getElementById("medioPago").value;
   const observaciones = document.getElementById("observaciones").value.trim();
   const idCaja = document.getElementById("caja").value;
+  const editId = document.getElementById("formGasto").dataset.editId || "";
 
   if (!concepto || !monto || !medioPago || !idCaja)
     return alert("Completa todos los campos obligatorios.");
 
-  fetch("insertar_gasto.php", {
+  const url = editId ? "actualizar_gasto.php" : "insertar_gasto.php";
+
+  fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
+      id: editId,
       concepto, monto, medioPago, observaciones, idCaja,
       insumos: JSON.stringify(insumosGasto)
     })
@@ -208,6 +223,8 @@ function guardarGasto(e) {
         insumosGasto = [];
         document.getElementById("formGasto").reset();
         lista.innerHTML = "";
+        delete document.getElementById("formGasto").dataset.editId;
+        document.getElementById("editMsg")?.remove();
         cargarInsumos();
         cargarGastos();
         cargarCajas();
@@ -219,7 +236,7 @@ function guardarGasto(e) {
     });
 }
 
-// 🔹 Cargar lista de gastos con insumos y categorías
+// 🔹 Cargar lista de gastos (con diferenciación de eliminados en rojo)
 function cargarGastos() {
   fetch("listar_gastos.php")
     .then(res => res.json())
@@ -238,28 +255,47 @@ function cargarGastos() {
             <tr>
               <th>Fecha</th>
               <th>Concepto</th>
-              <th>Insumos</th>
-              <th>Categorías</th>
               <th>Monto</th>
               <th>Medio de Pago</th>
               <th>Caja</th>
               <th>Observaciones</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
       `;
 
       data.forEach(g => {
+        // ✅ Detección robusta de "eliminado":
+        // - Si viene el campo g.eliminado == 1, o
+        // - Si en observaciones aparece la palabra ELIMINADO (por compatibilidad).
+        const esEliminado =
+          (typeof g.eliminado !== "undefined" && Number(g.eliminado) === 1) ||
+          (g.observaciones && /ELIMINADO/i.test(g.observaciones));
+
+        const estilo = esEliminado ? "style='color:red; text-decoration: line-through;'" : "";
+        const estado = esEliminado ? "❌ Eliminado" : "✅ Activo";
+
         tabla += `
-          <tr>
+          <tr ${estilo}>
             <td>${g.fecha}</td>
             <td>${g.concepto}</td>
-            <td>${g.insumos || '-'}</td>
-            <td>${g.categorias || '-'}</td>
             <td>$${parseFloat(g.montoTotal).toLocaleString("es-CO")}</td>
             <td>${g.medioPago}</td>
             <td>${g.caja}</td>
             <td>${g.observaciones || ''}</td>
+            <td>${estado}</td>
+            <td>
+              ${
+                esEliminado
+                  ? "<small>(Sin acciones)</small>"
+                  : `
+                    <button class="btn-editar" data-id="${g.idRegistroGasto}">✏️</button>
+                    <button class="btn-eliminar" data-id="${g.idRegistroGasto}" data-monto="${g.montoTotal}">🗑️</button>
+                  `
+              }
+            </td>
           </tr>
         `;
       });
@@ -273,3 +309,71 @@ function cargarGastos() {
         "<p style='color:red'>Error al cargar los gastos.</p>";
     });
 }
+
+// 🔹 Acciones: Editar / Eliminar
+document.addEventListener("click", async (e) => {
+  // 🗑️ Eliminar gasto
+  if (e.target.classList.contains("btn-eliminar")) {
+    const id = e.target.dataset.id;
+    const monto = parseFloat(e.target.dataset.monto);
+    const motivo = prompt("Ingrese el motivo de eliminación (dinero devuelto a caja):");
+    if (!motivo || motivo.trim() === "") return alert("Debe ingresar un motivo.");
+    if (confirm(`¿Seguro que desea eliminar el gasto #${id}? Se devolverán $${monto.toFixed(2)} a la caja.`)) {
+      const res = await fetch("eliminar_gasto.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ id, motivo, monto })
+      });
+      const data = await res.json();
+      alert(data.message || "Gasto eliminado correctamente.");
+      cargarGastos();
+      cargarCajas();
+    }
+  }
+
+  // ✏️ Editar gasto (carga todos los datos)
+  if (e.target.classList.contains("btn-editar")) {
+    const id = e.target.dataset.id;
+    const res = await fetch(`obtener_gasto.php?id=${id}`);
+    const gasto = await res.json();
+
+    if (gasto.error) {
+      alert(gasto.error);
+      return;
+    }
+
+    document.getElementById("concepto").value = gasto.concepto;
+    document.getElementById("monto").value = gasto.montoTotal;
+    document.getElementById("medioPago").value = gasto.idMedioPago;
+    document.getElementById("observaciones").value = gasto.observaciones || "";
+    document.getElementById("caja").value = gasto.idCaja;
+
+    const lista = document.getElementById("listaInsumos");
+    lista.innerHTML = "";
+    insumosGasto = [];
+    if (gasto.insumos && gasto.insumos.length > 0) {
+      gasto.insumos.forEach(i => {
+        insumosGasto.push({ nombre: i.insumo, categoria: i.categoria });
+        const p = document.createElement("p");
+        p.textContent = `🟢 ${i.insumo} (${i.categoria})`;
+        lista.appendChild(p);
+      });
+    }
+
+    const form = document.getElementById("formGasto");
+    form.dataset.editId = id;
+
+    document.getElementById("editMsg")?.remove();
+    const msg = document.createElement("div");
+    msg.id = "editMsg";
+    msg.textContent = `🟡 Editando gasto #${id}`;
+    msg.style.background = "#fff3cd";
+    msg.style.color = "#856404";
+    msg.style.padding = "10px";
+    msg.style.margin = "10px 0";
+    msg.style.borderRadius = "8px";
+    document.querySelector(".form-card").prepend(msg);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});

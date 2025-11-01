@@ -101,3 +101,17 @@ main {
   color: #3b3b3b;
   font-weight: 600;
 }
+
+/* 🔹 Efecto visual para la caja activa */
+.card.active {
+  border: 3px solid #007bff;
+  background-color: #e7f0ff;
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.6);
+  transform: scale(1.05);
+}
+
+
+
+
+
+
