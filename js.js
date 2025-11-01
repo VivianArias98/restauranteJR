@@ -156,6 +156,33 @@ function guardarCategoria() {
     })
     .catch(() => alert("❌ Error al registrar la categoría."));
 }
+// 🧹 Al cancelar (reset del formulario), limpiar también los insumos agregados
+document.getElementById("formGasto").addEventListener("reset", () => {
+  // Ejecutar después del reset nativo para que no interfiera
+  setTimeout(() => {
+    // Vaciar arreglo y UI de insumos
+    insumosGasto = [];
+    const contLista = document.getElementById("listaInsumos");
+    if (contLista) contLista.innerHTML = "";
+
+    // Rehabilitar el select de categoría por si estaba bloqueado por autocompletar
+    const selCat = document.getElementById("categoria");
+    if (selCat) {
+      selCat.disabled = false;
+      selCat.value = "";
+    }
+
+    // Salir del modo edición (si aplica)
+    const form = document.getElementById("formGasto");
+    if (form && form.dataset.editId) delete form.dataset.editId;
+    document.getElementById("editMsg")?.remove();
+
+    // Opcional: devolver foco a "insumo" para continuar rápido
+    document.getElementById("insumo")?.focus();
+  }, 0);
+});
+
+
 
 // 🔹 Crear botón para agregar insumo
 const btnAgregarInsumo = document.createElement("button");
@@ -178,13 +205,24 @@ btnAgregarInsumo.addEventListener("click", () => {
   insumosGasto.push({ nombre, categoria });
 
   const item = document.createElement("p");
-  item.textContent = `🟢 ${nombre} (${categoria})`;
+item.innerHTML = `🟢 ${nombre} (${categoria}) <button class="btn-quitar-insumo" data-nombre="${nombre}" style="margin-left:10px;">❌</button>`;
   lista.appendChild(item);
 
   document.getElementById("insumo").value = "";
   document.getElementById("categoria").disabled = false;
   document.getElementById("categoria").value = "";
 });
+// 🔹 Quitar insumo antes de guardar
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("btn-quitar-insumo")) {
+    const nombre = e.target.dataset.nombre;
+    // elimina del arreglo global
+    insumosGasto = insumosGasto.filter(i => i.nombre !== nombre);
+    // elimina del DOM
+    e.target.parentElement.remove();
+  }
+});
+
 
 // 🔹 Guardar gasto
 function guardarGasto(e) {

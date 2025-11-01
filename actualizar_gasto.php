@@ -55,8 +55,12 @@ $conn->query("
   WHERE idRegistroGasto = $id
 ");
 
+
+
 echo json_encode([
   "success" => true,
   "message" => "✅ Gasto actualizado correctamente y saldo de caja ajustado."
 ]);
+
+
 ?>
