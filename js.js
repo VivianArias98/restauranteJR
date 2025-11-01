@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let insumosGasto = [];
 let listaInsumos = [];
 
-// ✅ Ir a la sección de caja
+// ✅ Botón para ir a la sección de caja
 document.getElementById("btnCaja").addEventListener("click", () => {
   window.location.href = "caja.html";
 });
@@ -151,6 +151,7 @@ function guardarCategoria() {
       if (data.success) {
         cargarCategorias();
         ocultarNuevaCategoria();
+        document.getElementById("nombreCategoria").value = "";
       }
     })
     .catch(() => alert("❌ Error al registrar la categoría."));
@@ -249,6 +250,8 @@ function cargarGastos() {
             <tr>
               <th>Fecha</th>
               <th>Concepto</th>
+              <th>Insumos</th>
+              <th>Categorías</th>
               <th>Monto</th>
               <th>Medio de Pago</th>
               <th>Caja</th>
@@ -269,6 +272,8 @@ function cargarGastos() {
           <tr ${estilo}>
             <td>${g.fecha}</td>
             <td>${g.concepto}</td>
+            <td>${g.insumos}</td>
+            <td>${g.categorias}</td>
             <td>$${parseFloat(g.montoTotal).toLocaleString("es-CO")}</td>
             <td>${g.medioPago}</td>
             <td>${g.caja}</td>

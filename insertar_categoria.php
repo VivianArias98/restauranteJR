@@ -64,9 +64,7 @@ if (!$stmt) {
 $stmt->bind_param("ss", $nombre, $descripcion);
 $ejecutado = $stmt->execute();
 
-// =====================================================
-// ✅ Verificar resultado
-// =====================================================
+
 if ($ejecutado) {
     echo json_encode(["success" => true, "message" => "✅ Categoría registrada correctamente"]);
 } else {
